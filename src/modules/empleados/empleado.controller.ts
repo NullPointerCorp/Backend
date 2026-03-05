@@ -7,7 +7,6 @@ export const listarEmpleados = async (req: Request, res: Response) => {
     const empleados = await getAllEmpleados();
     return res.json(empleados);
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Error interno" });
   }
 };
@@ -42,7 +41,6 @@ export const crearEmpleado = async (req: Request, res: Response) => {
 
     return res.status(201).json(result);
   } catch (error: any) {
-    console.error(error);
     return res.status(500).json({ message: "Error creando empleado", detail: String(error?.message ?? error) });
   }
 };
@@ -57,7 +55,6 @@ export const editarEmpleado = async (req: Request, res: Response) => {
 
     return res.json({ ok: true });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Error interno" });
   }
 };
@@ -72,7 +69,6 @@ export const eliminarEmpleado = async (req: Request, res: Response) => {
 
     return res.json({ ok: true });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Error interno" });
   }
 };
