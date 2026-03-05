@@ -74,7 +74,7 @@ export const listarSucursalesCatalogo = async (req: Request, res: Response) => {
 export const listarSupervisores = async (req: Request, res: Response) => {
   try {
     const supervisores = await getSupervisores()
-    res.json(supervisores)  // ← quita el { ok: true, data: } 
+    res.json(supervisores)  
   } catch (error: any) {
     logSqlError("GET /empleados/supervisores", error);
     return res.status(500).json({ ok: false, message: "Error al listar supervisores" });
@@ -94,8 +94,7 @@ export const crearEmpleado = async (req: Request, res: Response) => {
 
     return res.status(201).json(result);
   } catch (error: any) {
-    logSqlError("POST /empleados", error);
-    return res.status(500).json({ ok: false, message: "Error interno al crear empleado" });
+    return res.status(500).json({ message: "Error creando empleado", detail: String(error?.message ?? error) });
   }
 };
 
@@ -109,13 +108,9 @@ export const editarEmpleado = async (req: Request, res: Response) => {
       logDebug("PUT /empleados/:id estado_id recibido", { estado_id, note: "estado_id se ignora; se deriva por ciudad_id" });
     }
 
-    const result = await editarEmpleadoService(empleadoId, body);
-    if ("error" in result) return res.status(400).json({ ok: false, message: result.error });
-
-    return res.json(result);
-  } catch (error: any) {
-    logSqlError("PUT /empleados/:id", error);
-    return res.status(500).json({ ok: false, message: "Error interno al actualizar empleado" });
+    return res.json({ ok: true });
+  } catch (error) {
+    return res.status(500).json({ message: "Error interno" });
   }
 };
 
@@ -130,10 +125,9 @@ export const eliminarEmpleado = async (req: Request, res: Response) => {
       return res.status(status).json({ ok: false, message: result.error });
     }
 
-    return res.json({ ok: true, message: "Empleado eliminado correctamente." });
-  } catch (error: any) {
-    logSqlError("DELETE /empleados/:id", error);
-    return res.status(500).json({ ok: false, message: "Error interno" });
+    return res.json({ ok: true });
+  } catch (error) {
+    return res.status(500).json({ message: "Error interno" });
   }
 };
 
