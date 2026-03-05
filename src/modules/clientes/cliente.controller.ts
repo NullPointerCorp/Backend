@@ -57,3 +57,13 @@ export const eliminarCliente = async (req: Request, res: Response) => {
     return res.status(404).json({ message: "Cliente no encontrado" });
   }
 };
+
+export const buscarPorCorreo = async (req: Request, res: Response) => {
+  try {
+    const cliente = await service.buscarClientePorCorreo(String(req.query.correo));
+    if (!cliente) return res.status(404).json({ message: "Cliente no encontrado" });
+    return res.json(cliente);
+  } catch (error) {
+    return res.status(500).json({ message: "Error interno" });
+  }
+};

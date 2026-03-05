@@ -24,3 +24,7 @@ export const actualizarCliente = async (cliente_id: number, data: Partial<CrearC
 export const eliminarCliente = async (cliente_id: number): Promise<void> => {
   await repo.deleteCliente(cliente_id);
 };
+
+export const buscarClientePorCorreo = async (correo: string): Promise<ClienteDTO | null> => {
+  return await repo.findClienteByCorreo(correo);
+};

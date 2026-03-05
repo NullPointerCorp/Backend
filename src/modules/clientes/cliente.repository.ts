@@ -42,3 +42,11 @@ export const deleteCliente = async (cliente_id: number): Promise<void> => {
     throw error;
   }
 };
+
+export const findClienteByCorreo = async (correo: string): Promise<ClienteDTO | null> => {
+  const [rows] = await pool.query(
+    `SELECT * FROM clientes WHERE correo = ?`, [correo]
+  );
+  const list = rows as ClienteDTO[];
+  return list.length ? list[0] : null;
+};
