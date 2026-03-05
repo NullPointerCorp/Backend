@@ -19,7 +19,6 @@ export const validate = (schema: ZodSchema, target: Target = "body") => {
       });
     }
 
-    // Reemplaza con datos parseados (ya transformados)
     if (target === "body") req.body = parsed.data;
     if (target === "params") (req as any).params = parsed.data;
     if (target === "query") (req as any).query = parsed.data;

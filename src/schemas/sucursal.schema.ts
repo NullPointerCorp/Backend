@@ -48,7 +48,6 @@ export const crearSucursalSchema = z.object({
         .max(10, "Máximo 10 caracteres")
     ),
 
-  // Opcionales - usan undefined, NO null (compatible con tu DTO)
   numero_interior: z
     .string()
     .transform((val) => val.trim())

@@ -84,17 +84,13 @@ export const listarSupervisores = async (req: Request, res: Response) => {
 export const crearEmpleado = async (req: Request, res: Response) => {
   try {
     const { estado_id, ...body } = req.body ?? {};
-    if (estado_id !== undefined) {
-      logDebug("POST /empleados estado_id recibido", { estado_id, note: "estado_id se ignora; se deriva por ciudad_id" });
-    }
-
     const result = await crearEmpleadoService(body);
-
     if ("error" in result) return res.status(400).json({ ok: false, message: result.error });
-
     return res.status(201).json(result);
   } catch (error: any) {
-    return res.status(500).json({ message: "Error creando empleado", detail: String(error?.message ?? error) });
+    console.error("ERROR CREAR EMPLEADO:", error) 
+    logSqlError("POST /empleados", error);
+    return res.status(500).json({ ok: false, message: "Error interno al crear empleado" });
   }
 };
 

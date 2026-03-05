@@ -36,13 +36,11 @@ const validateAddressConsistency = (dto: Partial<CrearEmpleadoDTO | EditarEmplea
 export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
   const correo = dto.correo.trim().toLowerCase();
 
-  // evita duplicados en BD
   const exists = await findEmpleadoByCorreo(correo);
   if (exists) {
     return { error: "Ya existe un empleado con ese correo" as const };
   }
 
-  // 1) Crear usuario en Firebase
   const addressError = validateAddressConsistency(dto);
   if (addressError) return { error: addressError };
 
@@ -58,7 +56,6 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
   });
 
   try {
-    // 2) Insertar en MySQL con firebase_uid
     const created = await insertEmpleado({
       nombre: dto.nombre,
       apellido_paterno: dto.apellido_paterno,
@@ -77,7 +74,6 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
       firebase_uid: user.uid,
     });
 
-    // 3) Link reset password para que el empleado ponga su contraseña
     const resetLink = await admin.auth().generatePasswordResetLink(correo);
     const saved = await getEmpleadoById(created.empleado_id);
 
@@ -90,7 +86,6 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
       },
     };
   } catch (e) {
-    // rollback: borrar usuario Firebase si MySQL falló
     await admin.auth().deleteUser(user.uid).catch(() => {});
     throw e;
   }
@@ -131,7 +126,6 @@ export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmple
 
   await updateEmpleado(empleadoId, patch);
 
-  // si quieres sincronizar lock con Firebase:
   if (dto.is_locked != null && empleado.firebase_uid) {
     await admin.auth().updateUser(empleado.firebase_uid, { disabled: !!dto.is_locked }).catch(() => {});
   }
@@ -156,9 +150,7 @@ export const eliminarEmpleadoService = async (empleadoId: number) => {
     throw error;
   }
 
-  // 2) opcional: borrar o deshabilitar en Firebase
   if (empleado.firebase_uid) {
-    // preferible: deshabilitar en lugar de borrar (depende tu política)
     await admin.auth().updateUser(empleado.firebase_uid, { disabled: true }).catch(() => {});
   }
 

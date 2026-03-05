@@ -190,7 +190,6 @@ export const insertEmpleado = async (data: {
 };
 
 export const updateEmpleado = async (empleadoId: number, patch: Record<string, unknown>) => {
-  // patch armado dinámicamente
   const keys = Object.keys(patch);
   if (keys.length === 0) return;
 

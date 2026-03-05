@@ -6,7 +6,6 @@ import {
   recordLoginSuccessByFirebaseUid,
 } from "../empleados/empleado.repository";
 
-// POST /auth/prelogin  { correo }
 export const prelogin = async (req: Request, res: Response) => {
   const correo = String(req.body?.correo ?? "")
     .trim()
@@ -18,7 +17,6 @@ export const prelogin = async (req: Request, res: Response) => {
 
   const st = await getEmpleadoSecurityByCorreo(correo);
 
-  // Neutral: si no existe, igual responde ok
   if (!st.exists) {
     return res.status(200).json({ ok: true });
   }
@@ -37,7 +35,6 @@ export const prelogin = async (req: Request, res: Response) => {
   return res.status(200).json({ ok: true });
 };
 
-// POST /auth/login-failed  { correo }
 export const loginFailed = async (req: Request, res: Response) => {
   const correo = String(req.body?.correo ?? "")
     .trim()
@@ -47,15 +44,11 @@ export const loginFailed = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "correo es obligatorio" });
   }
 
-  // Regla: 3 intentos, 15 minutos de bloqueo
   await recordLoginFailedByCorreo(correo, 3, 15);
 
-  // Neutral: siempre ok
   return res.status(200).json({ ok: true });
 };
 
-// GET /auth/me (tu getSession actual)
-// Requiere authMiddleware para llenar req.firebaseUid
 export const getSession = async (req: Request, res: Response) => {
   const firebaseUid = (req as any).firebaseUid as string | undefined;
 
@@ -66,11 +59,9 @@ export const getSession = async (req: Request, res: Response) => {
   const session = await getSessionByUid(firebaseUid);
 
   if (!session) {
-    // No revelamos detalles
     return res.status(403).json({ message: "No autorizado" });
   }
 
-  // Login exitoso: reset intentos + last_login_at
   await recordLoginSuccessByFirebaseUid(firebaseUid);
 
   return res.json(session);
