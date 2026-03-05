@@ -8,7 +8,7 @@ export const getAllEmpleados = async () => {
   return rows;
 };
 
-export const getGerentes = async () => {
+export const getSupervisores = async () => {
   const [rows] = await pool.query(
     `SELECT empleado_id, nombre, apellido_paterno
      FROM empleados

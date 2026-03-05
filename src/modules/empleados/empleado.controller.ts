@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getAllEmpleados, getGerentes } from "./empleado.repository";
+import { getAllEmpleados, getSupervisores } from "./empleado.repository";
 import { crearEmpleadoService, editarEmpleadoService, eliminarEmpleadoService } from "./empleado.service";
 
 export const listarEmpleados = async (req: Request, res: Response) => {
@@ -12,12 +12,12 @@ export const listarEmpleados = async (req: Request, res: Response) => {
   }
 };
 
-export const listarGerentes = async (req: Request, res: Response) => {
+export const listarSupervisores = async (req: Request, res: Response) => {
   try {
-    const gerentes = await getGerentes();
-    res.json(gerentes);
+    const supervisores = await getSupervisores();
+    res.json(supervisores);
   } catch (error) {
-    res.status(500).json({ message: "Error al listar gerentes" })
+    res.status(500).json({ message: "Error al listar supervisores" })
   }
 }
 

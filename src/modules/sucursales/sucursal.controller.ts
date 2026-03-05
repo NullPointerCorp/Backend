@@ -30,10 +30,15 @@ export const crearSucursal = async (req: Request, res: Response) => {
 
 export const actualizarSucursal = async (req: Request, res: Response) => {
   try {
-    const sucursal = await service.actualizarSucursal(Number(req.params.id), req.body);
+    const sucursal = await service.actualizarSucursal(
+      Number(req.params.id),
+      req.body,
+    );
     res.json(sucursal);
   } catch (error: any) {
-    res.status(404).json({ message: error.message || "Sucursal no encontrada" });
+    res
+      .status(404)
+      .json({ message: error.message || "Sucursal no encontrada" });
   }
 };
 
@@ -42,9 +47,21 @@ export const eliminarSucursal = async (req: Request, res: Response) => {
     await service.eliminarSucursal(Number(req.params.id));
     res.json({ message: "Sucursal eliminada correctamente" });
   } catch (error: any) {
-    if (error.message === 'No se puede eliminar la sucursal porque tiene registros asociados') {
+    if (
+      error.message ===
+      "No se puede eliminar la sucursal porque tiene registros asociados"
+    ) {
       return res.status(409).json({ message: error.message });
     }
     res.status(404).json({ message: "Sucursal no encontrada" });
+  }
+};
+
+export const listarSucursalesPorCiudad = async (req: Request, res: Response) => {
+  try {
+    const sucursales = await service.getSucursalesByCiudad(Number(req.query.ciudad_id));
+    return res.json(sucursales);
+  } catch (error) {
+    return res.status(500).json({ message: "Error al listar sucursales" });
   }
 };

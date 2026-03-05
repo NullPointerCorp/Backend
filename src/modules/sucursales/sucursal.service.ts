@@ -22,3 +22,7 @@ export const actualizarSucursal = async (sucursal_id: number, data: ActualizarSu
 export const eliminarSucursal = async (sucursal_id: number) => {
   return await repo.deleteSucursal(sucursal_id);
 };
+
+export const getSucursalesByCiudad = async (ciudad_id: number) => {
+  return await repo.getSucursalesByCiudad(ciudad_id);
+};

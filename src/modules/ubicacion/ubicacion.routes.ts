@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { listarEstados, listarCiudadesPorEstado } from "./ubicacion.controller";
-import { listarGerentes } from "../empleados/empleado.controller";
+import { listarSupervisores } from "../empleados/empleado.controller";
 
 const router = Router();
 

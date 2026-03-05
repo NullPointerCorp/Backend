@@ -1,26 +1,26 @@
 import * as repo from "./cliente.repository";
-import { CrearClienteDTO } from "./cliente.dto";
+import { ClienteDTO, CrearClienteDTO } from "./cliente.dto";
 
-export const listarClientes = async () => {
+export const listarClientes = async (): Promise<ClienteDTO[]> => {
   return await repo.getAllClientes();
 };
 
-export const obtenerCliente = async (cliente_id: number) => {
+export const obtenerCliente = async (cliente_id: number): Promise<ClienteDTO> => {
   const cliente = await repo.findClienteById(cliente_id);
   if (!cliente) throw new Error("Cliente no encontrado");
   return cliente;
 };
 
-export const crearCliente = async (data: CrearClienteDTO) => {
+export const crearCliente = async (data: CrearClienteDTO): Promise<ClienteDTO> => {
+  const existente = await repo.buscarCorreoExistente(data.correo);
+  if (existente) throw new Error("Correo ya registrado");
   return await repo.createCliente(data);
 };
 
-export const actualizarCliente = async (cliente_id: number, data: Partial<CrearClienteDTO>) => {
-  const result: any = await repo.updateCliente(cliente_id, data);
-  if ((result.affectedRows ?? 0) === 0) throw new Error("Cliente no encontrado");
-  return true;
+export const actualizarCliente = async (cliente_id: number, data: Partial<CrearClienteDTO>): Promise<ClienteDTO> => {
+  return await repo.updateCliente(cliente_id, data);
 };
 
-export const eliminarCliente = async (cliente_id: number) => {
-  return await repo.deleteCliente(cliente_id);
+export const eliminarCliente = async (cliente_id: number): Promise<void> => {
+  await repo.deleteCliente(cliente_id);
 };

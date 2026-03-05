@@ -5,6 +5,7 @@ import sucursalRoutes from "./src/modules/sucursales/sucursal.routes";
 import empleadoRoutes from "./src/modules/empleados/empleado.routes";
 import clienteRoutes from "./src/modules/clientes/cliente.routes";
 import ubicacion from "./src/modules/ubicacion/ubicacion.routes";
+import almacenRoutes from "./src/modules/almacenes/almacen.routes";
 
 const app = express();
 
@@ -19,9 +20,9 @@ app.use(cors({
 app.use("/auth", authRoutes);
 app.use("/ubicacion", ubicacion);
 app.use("/sucursales", sucursalRoutes);
+app.use("/almacenes", almacenRoutes);
 app.use("/empleados", empleadoRoutes);
 app.use("/clientes", clienteRoutes);
-
 
 app.get("/test", (req, res) => {
   res.send("Ruta test funcionando");

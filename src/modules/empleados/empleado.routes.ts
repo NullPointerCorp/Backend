@@ -7,7 +7,7 @@ import {
   empleadoIdParamSchema,
 } from "./empleado.schemas";
 import {
-  listarGerentes,
+  listarSupervisores,
   listarEmpleados,
   crearEmpleado,
   editarEmpleado,
@@ -17,7 +17,7 @@ import {
 const router = Router();
 
 router.get("/", authMiddleware, listarEmpleados);
-router.get("/gerentes", authMiddleware, listarGerentes)
+router.get("/supervisores", authMiddleware, listarSupervisores)
 
 router.post(
   "/",
