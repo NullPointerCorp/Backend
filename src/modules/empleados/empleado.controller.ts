@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getAllEmpleados, getSupervisores } from "./empleado.repository";
+import { getAllEmpleados, getSupervisores, getTransportistas } from './empleado.repository'
 import { crearEmpleadoService, editarEmpleadoService, eliminarEmpleadoService } from "./empleado.service";
 
 export const listarEmpleados = async (req: Request, res: Response) => {
@@ -76,3 +76,12 @@ export const eliminarEmpleado = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Error interno" });
   }
 };
+
+export const listarTransportistas = async (req: Request, res: Response) => {
+  try {
+    const transportistas = await getTransportistas()
+    res.json(transportistas)
+  } catch (error) {
+    res.status(500).json({ message: 'Error al listar transportistas' })
+  }
+}

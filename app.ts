@@ -7,6 +7,7 @@ import clienteRoutes from "./src/modules/clientes/cliente.routes";
 import ubicacion from "./src/modules/ubicacion/ubicacion.routes";
 import almacenRoutes from "./src/modules/almacenes/almacen.routes";
 import paquetesRouter from './src/modules/paquetes/paquete.routes';
+import transporteRoutes from "./src/modules/transportes/transporte.routes";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/almacenes", almacenRoutes);
 app.use("/empleados", empleadoRoutes);
 app.use("/clientes", clienteRoutes);
 app.use('/paquetes', paquetesRouter);
+app.use("/transporte", transporteRoutes);
 
 app.get("/test", (req, res) => {
   res.send("Ruta test funcionando");

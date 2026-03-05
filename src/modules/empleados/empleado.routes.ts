@@ -9,6 +9,7 @@ import {
 import {
   listarSupervisores,
   listarEmpleados,
+  listarTransportistas,
   crearEmpleado,
   editarEmpleado,
   eliminarEmpleado,
@@ -18,6 +19,7 @@ const router = Router();
 
 router.get("/", authMiddleware, listarEmpleados);
 router.get("/supervisores", authMiddleware, listarSupervisores)
+router.get('/transportistas', authMiddleware, listarTransportistas)
 
 router.post(
   "/",

@@ -18,6 +18,16 @@ export const getSupervisores = async () => {
   return rows as any[]
 }
 
+export const getTransportistas = async () => {
+  const [rows] = await pool.query(
+    `SELECT empleado_id, nombre, apellido_paterno
+     FROM empleados
+     WHERE rol_id = 4
+     ORDER BY nombre`
+  )
+  return rows as any[]
+}
+
 export const findEmpleadoById = async (empleadoId: number) => {
   const [rows] = await pool.query(
     `SELECT * FROM empleados WHERE empleado_id = ? LIMIT 1`,
