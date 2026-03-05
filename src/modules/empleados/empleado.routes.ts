@@ -20,8 +20,9 @@ router.get("/", authMiddleware, listarEmpleados);
 router.get("/roles", authMiddleware, listarRoles);
 router.get("/sucursales", authMiddleware, listarSucursalesCatalogo);
 router.get("/supervisores", authMiddleware, listarSupervisores);
-router.get("/:id", authMiddleware, validate(empleadoIdParamSchema, "params"), obtenerEmpleado);
 router.get('/transportistas', authMiddleware, listarTransportistas);
+router.get("/:id", authMiddleware, validate(empleadoIdParamSchema, "params"), obtenerEmpleado);
+
 
 router.post("/", authMiddleware, validate(crearEmpleadoSchema, "body"), crearEmpleado);
 
