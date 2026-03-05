@@ -1,18 +1,36 @@
 import admin from "../../config/firebase";
+
 import {
   deleteEmpleado,
   findEmpleadoByCorreo,
   findEmpleadoById,
+  getEmpleadoById,
   insertEmpleado,
   updateEmpleado,
 } from "./empleado.repository";
 import { CrearEmpleadoDTO, EditarEmpleadoDTO } from "./empleado.dto";
+import { hashPassword } from "./password.util";
 
 export const makeTempPassword = (length = 12) => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
   let out = "";
   for (let i = 0; i < length; i++) out += chars[Math.floor(Math.random() * chars.length)];
   return out;
+};
+
+const hasAddressPayload = (dto: Partial<CrearEmpleadoDTO | EditarEmpleadoDTO>) =>
+  dto.colonia != null ||
+  dto.codigo_postal != null ||
+  dto.calle != null ||
+  dto.numero_exterior != null ||
+  dto.numero_interior != null;
+
+const validateAddressConsistency = (dto: Partial<CrearEmpleadoDTO | EditarEmpleadoDTO>) => {
+  if (hasAddressPayload(dto) && dto.ciudad_id == null) {
+    return "ciudad_id es obligatorio cuando se envían datos de dirección" as const;
+  }
+
+  return null;
 };
 
 export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
@@ -25,11 +43,17 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
   }
 
   // 1) Crear usuario en Firebase
+  const addressError = validateAddressConsistency(dto);
+  if (addressError) return { error: addressError };
+
   const tempPassword = makeTempPassword();
+  const plainPassword = dto.contrasena?.trim() || tempPassword;
+  const passwordHash = await hashPassword(plainPassword);
+
   const user = await admin.auth().createUser({
     email: correo,
-    password: tempPassword,
-    displayName: dto.nombre,
+    password: plainPassword,
+    displayName: `${dto.nombre} ${dto.apellido_paterno}`,
     disabled: false,
   });
 
@@ -37,20 +61,33 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
     // 2) Insertar en MySQL con firebase_uid
     const created = await insertEmpleado({
       nombre: dto.nombre,
+      apellido_paterno: dto.apellido_paterno,
+      apellido_materno: dto.apellido_materno ?? null,
+      telefono: dto.telefono ?? null,
       correo,
+      contrasena_hash: passwordHash,
       rol_id: Number(dto.rol_id),
       sucursal_id: dto.sucursal_id != null ? Number(dto.sucursal_id) : null,
+      ciudad_id: dto.ciudad_id != null ? Number(dto.ciudad_id) : null,
+      colonia: dto.colonia ?? null,
+      codigo_postal: dto.codigo_postal ?? null,
+      calle: dto.calle ?? null,
+      numero_exterior: dto.numero_exterior ?? null,
+      numero_interior: dto.numero_interior ?? null,
       firebase_uid: user.uid,
     });
 
     // 3) Link reset password para que el empleado ponga su contraseña
     const resetLink = await admin.auth().generatePasswordResetLink(correo);
+    const saved = await getEmpleadoById(created.empleado_id);
 
     return {
       ok: true as const,
-      empleado_id: created.empleado_id,
-      firebase_uid: created.firebase_uid,
-      reset_password_link: resetLink,
+        message: "Empleado creado correctamente",
+      data: {
+        ...saved,
+        reset_password_link: resetLink,
+      },
     };
   } catch (e) {
     // rollback: borrar usuario Firebase si MySQL falló
@@ -63,13 +100,34 @@ export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmple
   const empleado = await findEmpleadoById(empleadoId);
   if (!empleado) return { error: "Empleado no encontrado" as const };
 
-  const patch: any = {};
+  const addressError = validateAddressConsistency(dto);
+  if (addressError) return { error: addressError };
+
+  const patch: Record<string, unknown> = {};
 
   if (dto.nombre != null) patch.nombre = dto.nombre;
+  if (dto.apellido_paterno != null) patch.apellido_paterno = dto.apellido_paterno;
+  if (dto.apellido_materno !== undefined) patch.apellido_materno = dto.apellido_materno;
+  if (dto.telefono !== undefined) patch.telefono = dto.telefono;
   if (dto.correo != null) patch.correo = dto.correo.trim().toLowerCase();
   if (dto.rol_id != null) patch.rol_id = Number(dto.rol_id);
   if (dto.sucursal_id !== undefined) patch.sucursal_id = dto.sucursal_id != null ? Number(dto.sucursal_id) : null;
+  if (dto.ciudad_id !== undefined) patch.ciudad_id = dto.ciudad_id != null ? Number(dto.ciudad_id) : null;
+  if (dto.colonia !== undefined) patch.colonia = dto.colonia;
+  if (dto.codigo_postal !== undefined) patch.codigo_postal = dto.codigo_postal;
+  if (dto.calle !== undefined) patch.calle = dto.calle;
+  if (dto.numero_exterior !== undefined) patch.numero_exterior = dto.numero_exterior;
+  if (dto.numero_interior !== undefined) patch.numero_interior = dto.numero_interior;
   if (dto.is_locked != null) patch.is_locked = dto.is_locked ? 1 : 0;
+
+  if (dto.contrasena) {
+    const plainPassword = dto.contrasena.trim();
+    patch.contrasena = await hashPassword(plainPassword);
+
+    if (empleado.firebase_uid) {
+      await admin.auth().updateUser(empleado.firebase_uid, { password: plainPassword }).catch(() => {});
+    }
+  }
 
   await updateEmpleado(empleadoId, patch);
 
@@ -78,15 +136,25 @@ export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmple
     await admin.auth().updateUser(empleado.firebase_uid, { disabled: !!dto.is_locked }).catch(() => {});
   }
 
-  return { ok: true as const };
+  const actualizado = await getEmpleadoById(empleadoId);
+  return { ok: true as const, message: "Empleado actualizado correctamente", data: actualizado };
 };
 
 export const eliminarEmpleadoService = async (empleadoId: number) => {
   const empleado = await findEmpleadoById(empleadoId);
   if (!empleado) return { error: "Empleado no encontrado" as const };
 
-  // 1) borrar de BD
-  await deleteEmpleado(empleadoId);
+  try {
+    await deleteEmpleado(empleadoId);
+  } catch (error: any) {
+    if (error?.code === "ER_ROW_IS_REFERENCED_2" || error?.errno === 1451) {
+      return {
+        error: "No se puede eliminar el empleado porque tiene registros relacionados." as const,
+        code: "FK_CONSTRAINT" as const,
+      };
+    }
+    throw error;
+  }
 
   // 2) opcional: borrar o deshabilitar en Firebase
   if (empleado.firebase_uid) {

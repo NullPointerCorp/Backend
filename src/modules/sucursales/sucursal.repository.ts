@@ -4,18 +4,27 @@ import { ResultSetHeader } from "mysql2/promise";
 
 export const getAllSucursales = async () => {
   const [rows] = await pool.query(`
-    SELECT s.sucursal_id, s.nombre_sucursal, 
-           est.nombre_estado,
-           c.nombre_ciudad, s.colonia,
-           s.codigo_postal, s.calle, s.numero_exterior, s.numero_interior,
-           s.longitud, s.latitud,
-           s.supervisor_de_sucursal AS empleado_id_supervisor,
-           CONCAT(e.nombre, ' ', e.apellido_paterno) AS nombre_supervisor
+    SELECT 
+      s.sucursal_id,
+      s.nombre_sucursal,
+      est.nombre_estado,
+      c.nombre_ciudad,
+      s.colonia,
+      s.codigo_postal,
+      s.calle,
+      s.numero_exterior,
+      s.numero_interior,
+      s.longitud,
+      s.latitud,
+      s.supervisor_de_sucursal AS empleado_id_supervisor,
+      CONCAT(COALESCE(e.nombre, ''), ' ', COALESCE(e.apellido_paterno, '')) AS nombre_supervisor
     FROM sucursales s
     LEFT JOIN ciudades c ON s.ciudad_id = c.ciudad_id
     LEFT JOIN estados est ON c.estado_id = est.estado_id
     LEFT JOIN empleados e ON s.supervisor_de_sucursal = e.empleado_id
+    ORDER BY s.sucursal_id DESC
   `);
+
   return rows as any[];
 };
 
@@ -59,6 +68,7 @@ export const updateSucursal = async (sucursal_id: number, data: ActualizarSucurs
   await pool.query(
     `UPDATE sucursales SET 
       nombre_sucursal = ?,
+      ciudad_id = ?,
       colonia = ?,
       codigo_postal = ?,
       calle = ?,
@@ -70,6 +80,7 @@ export const updateSucursal = async (sucursal_id: number, data: ActualizarSucurs
     WHERE sucursal_id = ?`,
     [
       data.nombre_sucursal,
+      data.ciudad_id ?? null,
       data.colonia,
       data.codigo_postal,
       data.calle,

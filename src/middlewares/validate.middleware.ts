@@ -10,9 +10,10 @@ export const validate = (schema: ZodSchema, target: Target = "body") => {
     const parsed = schema.safeParse(data);
     if (!parsed.success) {
       return res.status(400).json({
+        ok: false,
         message: "Datos inválidos",
         errors: parsed.error.issues.map((i) => ({
-          path: i.path.join("."),
+          field: i.path.join("."),
           message: i.message,
         })),
       });

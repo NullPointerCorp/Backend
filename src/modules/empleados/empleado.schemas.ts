@@ -1,19 +1,25 @@
 import { z } from "zod";
 
-// Helpers
+
 const trimString = z.string().trim();
 const email = z.string().trim().toLowerCase().email("Correo inválido");
 
-// Si manejas sucursal_id opcional:
 const nullableInt = z
     .union([z.number().int().positive(), z.string().regex(/^\d+$/)])
     .transform((v) => (typeof v === "string" ? Number(v) : v))
     .nullable();
 
-// rol_id requerido como int positivo
+
 const intFromAny = z
     .union([z.number().int(), z.string().regex(/^\d+$/)])
     .transform((v) => (typeof v === "string" ? Number(v) : v));
+
+const nullableText = z
+  .union([z.string(), z.null()])
+  .transform((v) => (typeof v === "string" ? v.trim() : v))
+  .transform((v) => (v === "" ? null : v));
+
+const password = z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(100, "Contraseña demasiado larga");
 
 export const empleadoIdParamSchema = z.object({
     id: z
@@ -24,47 +30,55 @@ export const empleadoIdParamSchema = z.object({
 
 export const crearEmpleadoSchema = z.object({
     nombre: trimString.min(2, "Nombre muy corto").max(80, "Nombre muy largo"),
-    apellidos: trimString.min(2, "Apellidos muy cortos").max(120, "Apellidos muy largos"),
+    apellido_paterno: trimString.min(2, "Apellido paterno muy corto").max(80, "Apellido paterno muy largo"),
+    apellido_materno: nullableText.optional().default(null),
     correo: email,
+    contrasena: password.optional(),
     telefono: trimString
     .optional()
     .nullable()
-    .refine(
-        (v) => v == null || /^[0-9+\-\s]{7,20}$/.test(v),
-        "Teléfono inválido"
-    ),
-
+    .refine((v) => v == null || /^[0-9+\-\s]{7,20}$/.test(v), "Teléfono inválido"),
     rol_id: intFromAny.refine((v) => v > 0, "rol_id inválido"),
-
-  // Si lo tienes en tabla:
     sucursal_id: nullableInt.optional().default(null),
-
-  // Si manejas ciudad_id:
+    estado_id: nullableInt.optional().default(null),
     ciudad_id: nullableInt.optional().default(null),
-});
+    colonia: nullableText.optional().default(null),
+    codigo_postal: nullableText
+        .optional()
+        .default(null)
+        .refine((v) => v == null || /^[0-9]{4,10}$/.test(v), "Código postal inválido"),
+    calle: nullableText.optional().default(null),
+    numero_exterior: nullableText.optional().default(null),
+    numero_interior: nullableText.optional().default(null),
+  })
+  .passthrough();
 
 export const editarEmpleadoSchema = z
     .object({
     nombre: trimString.min(2).max(80).optional(),
-    apellidos: trimString.min(2).max(120).optional(),
+    apellido_paterno: trimString.min(2).max(80).optional(),
+    apellido_materno: nullableText.optional(),
     correo: email.optional(),
+    contrasena: password.optional(),
     telefono: z
     .string()
     .trim()
     .transform((v) => (v === "" ? null : v))
     .nullable()
-    .refine(
-        (v) => v == null || (typeof v === "string" && /^[0-9+\-\s]{7,20}$/.test(v)),
-        "Teléfono inválido"
-    )
+    .refine((v) => v == null || (typeof v === "string" && /^[0-9+\-\s]{7,20}$/.test(v)), "Teléfono inválido")
     .optional(),
 
     rol_id: intFromAny.refine((v) => v > 0, "rol_id inválido").optional(),
-
     sucursal_id: nullableInt.optional(),
+    estado_id: nullableInt.optional(),
     ciudad_id: nullableInt.optional(),
-
-    // Para bloquear/desbloquear manual
+    colonia: nullableText.optional(),
+    codigo_postal: nullableText
+      .optional()
+      .refine((v) => v == null || /^[0-9]{4,10}$/.test(v), "Código postal inválido"),
+    calle: nullableText.optional(),
+    numero_exterior: nullableText.optional(),
+    numero_interior: nullableText.optional(),
     is_locked: z.boolean().optional(),
     })
-    .strict();
+  .passthrough();

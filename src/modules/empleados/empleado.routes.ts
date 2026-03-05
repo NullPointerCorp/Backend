@@ -1,32 +1,29 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { validate } from "../../middlewares/validate.middleware";
+import { crearEmpleadoSchema, editarEmpleadoSchema, empleadoIdParamSchema } from "./empleado.schemas";
 import {
-  crearEmpleadoSchema,
-  editarEmpleadoSchema,
-  empleadoIdParamSchema,
-} from "./empleado.schemas";
-import {
-  listarSupervisores,
-  listarEmpleados,
-  listarTransportistas,
   crearEmpleado,
   editarEmpleado,
   eliminarEmpleado,
+  listarEmpleados,
+  listarRoles,
+  listarSucursalesCatalogo,
+  listarSupervisores,
+  obtenerEmpleado,
+  listarTransportistas,
 } from "./empleado.controller";
 
 const router = Router();
 
 router.get("/", authMiddleware, listarEmpleados);
-router.get("/supervisores", authMiddleware, listarSupervisores)
-router.get('/transportistas', authMiddleware, listarTransportistas)
+router.get("/roles", authMiddleware, listarRoles);
+router.get("/sucursales", authMiddleware, listarSucursalesCatalogo);
+router.get("/supervisores", authMiddleware, listarSupervisores);
+router.get("/:id", authMiddleware, validate(empleadoIdParamSchema, "params"), obtenerEmpleado);
+router.get('/transportistas', authMiddleware, listarTransportistas);
 
-router.post(
-  "/",
-  authMiddleware,
-  validate(crearEmpleadoSchema, "body"),
-  crearEmpleado,
-);
+router.post("/", authMiddleware, validate(crearEmpleadoSchema, "body"), crearEmpleado);
 
 router.put(
   "/:id",
@@ -36,11 +33,6 @@ router.put(
   editarEmpleado,
 );
 
-router.delete(
-  "/:id",
-  authMiddleware,
-  validate(empleadoIdParamSchema, "params"),
-  eliminarEmpleado,
-);
+router.delete("/:id", authMiddleware, validate(empleadoIdParamSchema, "params"), eliminarEmpleado);
 
 export default router;
