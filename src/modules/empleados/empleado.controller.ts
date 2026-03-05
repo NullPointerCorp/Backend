@@ -73,13 +73,13 @@ export const listarSucursalesCatalogo = async (req: Request, res: Response) => {
 
 export const listarSupervisores = async (req: Request, res: Response) => {
   try {
-    const supervisores = await getSupervisores();
-    return res.json({ ok: true, data: supervisores });
+    const supervisores = await getSupervisores()
+    res.json(supervisores)  // ← quita el { ok: true, data: } 
   } catch (error: any) {
     logSqlError("GET /empleados/supervisores", error);
     return res.status(500).json({ ok: false, message: "Error al listar supervisores" });
   }
-};
+}
 
 export const crearEmpleado = async (req: Request, res: Response) => {
   try {

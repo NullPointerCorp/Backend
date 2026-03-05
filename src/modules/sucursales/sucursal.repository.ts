@@ -31,12 +31,14 @@ export const getAllSucursales = async () => {
 export const findSucursalById = async (sucursal_id: number) => {
   const [rows] = await pool.query(`
     SELECT s.sucursal_id, s.nombre_sucursal, s.ciudad_id, c.nombre_ciudad,
+           est.nombre_estado,                                    
            s.colonia, s.codigo_postal, s.calle, s.numero_exterior,
            s.numero_interior, s.longitud, s.latitud,
            s.supervisor_de_sucursal AS empleado_id_supervisor,
            CONCAT(e.nombre, ' ', e.apellido_paterno) AS nombre_supervisor
     FROM sucursales s
     LEFT JOIN ciudades c ON s.ciudad_id = c.ciudad_id
+    LEFT JOIN estados est ON c.estado_id = est.estado_id
     LEFT JOIN empleados e ON s.supervisor_de_sucursal = e.empleado_id
     WHERE s.sucursal_id = ?
   `, [sucursal_id]);
