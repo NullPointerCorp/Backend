@@ -40,7 +40,7 @@ export type CrearEmpleadoDTO = {
 
 export type EditarEmpleadoDTO = {
   nombre?: string;
-  apellido_paterno: string;
+  apellido_paterno?: string; 
   apellido_materno?: string | null;
   telefono?: string | null;
   correo?: string;

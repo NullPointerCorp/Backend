@@ -20,13 +20,20 @@ export const findClienteById = async (cliente_id: number): Promise<ClienteDTO | 
 };
 
 export const createCliente = async (data: CrearClienteDTO): Promise<ClienteDTO> => {
-  const [result] = await pool.query<ResultSetHeader>(`INSERT INTO clientes SET ?`, [data]);
+  const [result] = await pool.query<ResultSetHeader>(
+    `INSERT INTO clientes (nombre, apellido_paterno, apellido_materno, correo, telefono) 
+     VALUES (?, ?, ?, ?, ?)`, 
+    [data.nombre, data.apellido_paterno, data.apellido_materno ?? null, data.correo, data.telefono ?? null]
+  );
   return await findClienteById(result.insertId) as ClienteDTO;
 };
 
 export const updateCliente = async (cliente_id: number, data: Partial<CrearClienteDTO>): Promise<ClienteDTO> => {
   const [result] = await pool.query<ResultSetHeader>(
-    `UPDATE clientes SET ? WHERE cliente_id = ?`, [data, cliente_id]
+    `UPDATE clientes 
+     SET nombre = ?, apellido_paterno = ?, apellido_materno = ?, telefono = ? 
+     WHERE cliente_id = ?`,
+    [data.nombre, data.apellido_paterno, data.apellido_materno ?? null, data.telefono ?? null, cliente_id]
   );
   if ((result as any).affectedRows === 0) throw new Error("Cliente no encontrado");
   return await findClienteById(cliente_id) as ClienteDTO;

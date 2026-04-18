@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { validate } from "../../middlewares/validate.middleware";
-import { crearEmpleadoSchema, editarEmpleadoSchema, empleadoIdParamSchema } from "./empleado.schemas";
+import { crearEmpleadoSchema, editarEmpleadoSchema, empleadoIdParamSchema } from "./empleado.schema";
 import {
   crearEmpleado,
   editarEmpleado,
