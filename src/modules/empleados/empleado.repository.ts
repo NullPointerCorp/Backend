@@ -54,7 +54,7 @@ LEFT JOIN estados est ON c.estado_id = est.estado_id`;
 
 
 export const getAllEmpleados = async () => {
-  const [rows] = await pool.query(`${empleadoSelect} ORDER BY e.empleado_id DESC`);
+  const [rows] = await pool.query(`${empleadoSelect} ORDER BY e.empleado_id ASC`);
   return rows as EmpleadoListadoRow[];
 };
 
@@ -136,12 +136,6 @@ export const findEmpleadoByFirebaseUid = async (uid: string) => {
     const list = rows as any[];
     return list.length ? list[0] : null;
   } catch (error: any) {
-    console.error("Error en findEmpleadoByFirebaseUid");
-    console.error("message:", error?.message);
-    console.error("code:", error?.code);
-    console.error("errno:", error?.errno);
-    console.error("sqlState:", error?.sqlState);
-    console.error("sqlMessage:", error?.sqlMessage);
     throw error;
   }
 };

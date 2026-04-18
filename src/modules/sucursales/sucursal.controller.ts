@@ -6,7 +6,6 @@ export const listarSucursales = async (req: Request, res: Response) => {
     const sucursales = await service.listarSucursales();
     res.json(sucursales);
   } catch (error) {
-    console.error("Error al listar sucursales:", error);
     res.status(500).json({ message: "Error al listar sucursales" });
   }
 };
@@ -63,7 +62,6 @@ export const listarSucursalesPorCiudad = async (req: Request, res: Response) => 
     const sucursales = await service.getSucursalesByCiudad(Number(req.query.ciudad_id));
     return res.json(sucursales);
   } catch (error) {
-    console.error("Error al listar sucursales por ciudad:", error);
     return res.status(500).json({ message: "Error al listar sucursales" });
   }
 };
