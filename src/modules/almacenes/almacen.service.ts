@@ -1,5 +1,6 @@
 import * as repo from "./almacen.repository";
 import { AlmacenDTO, CrearAlmacenDTO } from "./almacen.dto";
+import { NotFoundError } from "../../errors/http-errors";
 
 export const listarAlmacenes = async (): Promise<AlmacenDTO[]> => {
   return await repo.getAllAlmacenes();
@@ -7,7 +8,7 @@ export const listarAlmacenes = async (): Promise<AlmacenDTO[]> => {
 
 export const obtenerAlmacen = async (almacen_id: number): Promise<AlmacenDTO> => {
   const almacen = await repo.findAlmacenById(almacen_id);
-  if (!almacen) throw new Error("Almacén no encontrado");
+  if (!almacen) throw new NotFoundError("Almacén no encontrado");
   return almacen;
 };
 
@@ -15,7 +16,10 @@ export const crearAlmacen = async (data: CrearAlmacenDTO): Promise<AlmacenDTO> =
   return await repo.createAlmacen(data);
 };
 
-export const actualizarAlmacen = async (almacen_id: number, data: Partial<CrearAlmacenDTO>): Promise<AlmacenDTO> => {
+export const actualizarAlmacen = async (
+  almacen_id: number,
+  data: Partial<CrearAlmacenDTO>
+): Promise<AlmacenDTO> => {
   return await repo.updateAlmacen(almacen_id, data);
 };
 

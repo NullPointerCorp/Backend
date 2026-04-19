@@ -1,5 +1,6 @@
 import * as repo from "./rol.repository";
 import { RolDTO, CrearRolDTO, EditarRolDTO } from "./rol.dto";
+import { NotFoundError } from "../../errors/http-errors";
 
 export const listarRoles = async (): Promise<RolDTO[]> => {
   return await repo.getAllRoles();
@@ -7,7 +8,7 @@ export const listarRoles = async (): Promise<RolDTO[]> => {
 
 export const obtenerRol = async (rol_id: number): Promise<RolDTO> => {
   const rol = await repo.findRolById(rol_id);
-  if (!rol) throw new Error("Rol no encontrado");
+  if (!rol) throw new NotFoundError("Rol no encontrado");
   return rol;
 };
 
@@ -15,7 +16,10 @@ export const crearRol = async (data: CrearRolDTO): Promise<RolDTO> => {
   return await repo.createRol(data);
 };
 
-export const actualizarRol = async (rol_id: number, data: EditarRolDTO): Promise<RolDTO> => {
+export const actualizarRol = async (
+  rol_id: number,
+  data: EditarRolDTO
+): Promise<RolDTO> => {
   return await repo.updateRol(rol_id, data);
 };
 

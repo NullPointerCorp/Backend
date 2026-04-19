@@ -1,5 +1,6 @@
 import { ResultSetHeader } from "mysql2/promise";
 import { pool } from "../../config/database";
+import { NotFoundError } from "../../errors/http-errors";
 
 export type EmpleadoListadoRow = {
   empleado_id: number;
@@ -53,137 +54,92 @@ LEFT JOIN ciudades c ON e.ciudad_id = c.ciudad_id
 LEFT JOIN estados est ON c.estado_id = est.estado_id`;
 
 export const getAllEmpleados = async () => {
-  try {
-    const [rows] = await pool.query(`${empleadoSelect} ORDER BY e.empleado_id ASC`);
-    return rows as EmpleadoListadoRow[];
-  } catch (error: any) {
-    console.error("Error al obtener empleados:", error);
-    throw new Error("Error al obtener la lista de empleados");
-  }
+  const [rows] = await pool.query(`${empleadoSelect} ORDER BY e.empleado_id ASC`);
+  return rows as EmpleadoListadoRow[];
 };
 
 export const getEmpleadoById = async (empleadoId: number) => {
-  try {
-    const [rows] = await pool.query(
-      `${empleadoSelect} WHERE e.empleado_id = ? LIMIT 1`,
-      [empleadoId]
-    );
-    const list = rows as EmpleadoListadoRow[];
-    return list.length ? list[0] : null;
-  } catch (error: any) {
-    console.error("Error al buscar empleado por ID:", error);
-    throw new Error("Error al buscar el empleado");
-  }
+  const [rows] = await pool.query(
+    `${empleadoSelect} WHERE e.empleado_id = ? LIMIT 1`,
+    [empleadoId]
+  );
+  const list = rows as EmpleadoListadoRow[];
+  return list.length ? list[0] : null;
 };
 
 export const getRolesCatalogo = async () => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT rol_id, rol_nombre
-       FROM roles
-       ORDER BY rol_nombre`
-    );
-    return rows as { rol_id: number; nombre: string }[];
-  } catch (error: any) {
-    console.error("Error al obtener catálogo de roles:", error);
-    throw new Error("Error al obtener los roles");
-  }
+  const [rows] = await pool.query(
+    `SELECT rol_id, rol_nombre
+     FROM roles
+     ORDER BY rol_nombre`
+  );
+  return rows as { rol_id: number; nombre: string }[];
 };
 
 export const getSucursalesCatalogo = async () => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT sucursal_id, nombre_sucursal AS nombre
-       FROM sucursales
-       ORDER BY nombre_sucursal`
-    );
-    return rows as { sucursal_id: number; nombre: string }[];
-  } catch (error: any) {
-    console.error("Error al obtener catálogo de sucursales:", error);
-    throw new Error("Error al obtener las sucursales");
-  }
+  const [rows] = await pool.query(
+    `SELECT sucursal_id, nombre_sucursal AS nombre
+     FROM sucursales
+     ORDER BY nombre_sucursal`
+  );
+  return rows as { sucursal_id: number; nombre: string }[];
 };
 
 export const getSupervisores = async () => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT empleado_id, nombre, apellido_paterno
-       FROM empleados
-       WHERE rol_id = 2
-       ORDER BY nombre`
-    );
-    return rows as any[];
-  } catch (error: any) {
-    console.error("Error al obtener supervisores:", error);
-    throw new Error("Error al obtener los supervisores");
-  }
+  const [rows] = await pool.query(
+    `SELECT empleado_id, nombre, apellido_paterno
+     FROM empleados
+     WHERE rol_id = 2
+     ORDER BY nombre`
+  );
+  return rows as any[];
 };
 
 export const getTransportistas = async () => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT empleado_id, nombre, apellido_paterno
-       FROM empleados
-       WHERE rol_id = 4
-       ORDER BY nombre`
-    );
-    return rows as any[];
-  } catch (error: any) {
-    console.error("Error al obtener transportistas:", error);
-    throw new Error("Error al obtener los transportistas");
-  }
+  const [rows] = await pool.query(
+    `SELECT empleado_id, nombre, apellido_paterno
+     FROM empleados
+     WHERE rol_id = 4
+     ORDER BY nombre`
+  );
+  return rows as any[];
 };
 
 export const findEmpleadoById = async (empleadoId: number) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT * FROM empleados WHERE empleado_id = ? LIMIT 1`,
-      [empleadoId]
-    );
-    const list = rows as any[];
-    return list.length ? list[0] : null;
-  } catch (error: any) {
-    console.error("Error al buscar empleado (findById):", error);
-    throw new Error("Error al buscar el empleado");
-  }
+  const [rows] = await pool.query(
+    `SELECT * FROM empleados WHERE empleado_id = ? LIMIT 1`,
+    [empleadoId]
+  );
+  const list = rows as any[];
+  return list.length ? list[0] : null;
 };
 
 export const findEmpleadoByCorreo = async (correo: string) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT * FROM empleados WHERE correo = ? LIMIT 1`,
-      [correo]
-    );
-    const list = rows as any[];
-    return list.length ? list[0] : null;
-  } catch (error: any) {
-    console.error("Error al buscar empleado por correo:", error);
-    throw new Error("Error al buscar el empleado");
-  }
+  const [rows] = await pool.query(
+    `SELECT * FROM empleados WHERE correo = ? LIMIT 1`,
+    [correo]
+  );
+  const list = rows as any[];
+  return list.length ? list[0] : null;
 };
 
 export const findEmpleadoByFirebaseUid = async (uid: string) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT 
-        e.empleado_id, 
-        e.nombre, 
-        e.correo, 
-        e.is_locked, 
-        r.rol_id, 
-        r.rol_nombre AS rol
-       FROM empleados e
-       INNER JOIN roles r ON e.rol_id = r.rol_id
-       WHERE e.firebase_uid = ?
-       LIMIT 1`,
-      [uid]
-    );
-    const list = rows as any[];
-    return list.length ? list[0] : null;
-  } catch (error: any) {
-    console.error("Error al buscar empleado por Firebase UID:", error);
-    throw new Error("Error al buscar el empleado");
-  }
+  const [rows] = await pool.query(
+    `SELECT 
+      e.empleado_id, 
+      e.nombre, 
+      e.correo, 
+      e.is_locked, 
+      r.rol_id, 
+      r.rol_nombre AS rol
+     FROM empleados e
+     INNER JOIN roles r ON e.rol_id = r.rol_id
+     WHERE e.firebase_uid = ?
+     LIMIT 1`,
+    [uid]
+  );
+  const list = rows as any[];
+  return list.length ? list[0] : null;
 };
 
 export const insertEmpleado = async (data: {
@@ -203,127 +159,91 @@ export const insertEmpleado = async (data: {
   numero_interior: string | null;
   firebase_uid: string;
 }) => {
-  try {
-    const [result] = await pool.query<ResultSetHeader>(
-      `INSERT INTO empleados (
-        nombre, apellido_paterno, apellido_materno, telefono, correo, contrasena,
-        rol_id, sucursal_id, ciudad_id, colonia, codigo_postal, calle, numero_exterior, numero_interior, firebase_uid
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        data.nombre,
-        data.apellido_paterno,
-        data.apellido_materno,
-        data.telefono,
-        data.correo,
-        data.contrasena_hash,
-        data.rol_id,
-        data.sucursal_id,
-        data.ciudad_id,
-        data.colonia,
-        data.codigo_postal,
-        data.calle,
-        data.numero_exterior,
-        data.numero_interior,
-        data.firebase_uid,
-      ]
-    );
-    return { empleado_id: result.insertId, firebase_uid: data.firebase_uid };
-  } catch (error: any) {
-    console.error("Error al insertar empleado:", error);
-    if (error.code === "ER_DUP_ENTRY") {
-      throw new Error("Ya existe un empleado con ese correo");
-    }
-    if (error.code === "ER_NO_REFERENCED_ROW_2") {
-      throw new Error("El rol, sucursal o ciudad seleccionada no existe");
-    }
-    throw new Error("Error al registrar el empleado");
-  }
+  const [result] = await pool.query<ResultSetHeader>(
+    `INSERT INTO empleados (
+      nombre, apellido_paterno, apellido_materno, telefono, correo, contrasena,
+      rol_id, sucursal_id, ciudad_id, colonia, codigo_postal, calle, numero_exterior, numero_interior, firebase_uid
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      data.nombre,
+      data.apellido_paterno,
+      data.apellido_materno,
+      data.telefono,
+      data.correo,
+      data.contrasena_hash,
+      data.rol_id,
+      data.sucursal_id,
+      data.ciudad_id,
+      data.colonia,
+      data.codigo_postal,
+      data.calle,
+      data.numero_exterior,
+      data.numero_interior,
+      data.firebase_uid,
+    ]
+  );
+  return { empleado_id: result.insertId, firebase_uid: data.firebase_uid };
 };
 
 export const updateEmpleado = async (
   empleadoId: number,
   patch: Record<string, unknown>
 ) => {
-  try {
-    const keys = Object.keys(patch);
-    if (keys.length === 0) return;
+  const keys = Object.keys(patch);
+  if (keys.length === 0) return;
 
-    const setSql = keys.map((k) => `${k} = ?`).join(", ");
-    const values = keys.map((k) => patch[k]);
+  const setSql = keys.map((k) => `${k} = ?`).join(", ");
+  const values = keys.map((k) => patch[k]);
 
-    const [result] = await pool.query<ResultSetHeader>(
-      `UPDATE empleados SET ${setSql} WHERE empleado_id = ?`,
-      [...values, empleadoId]
-    );
+  const [result] = await pool.query<ResultSetHeader>(
+    `UPDATE empleados SET ${setSql} WHERE empleado_id = ?`,
+    [...values, empleadoId]
+  );
 
-    if (result.affectedRows === 0) throw new Error("Empleado no encontrado");
-  } catch (error: any) {
-    if (error.message === "Empleado no encontrado") throw error;
-    console.error("Error al actualizar empleado:", error);
-    if (error.code === "ER_DUP_ENTRY") {
-      throw new Error("Ya existe un empleado con ese correo");
-    }
-    if (error.code === "ER_NO_REFERENCED_ROW_2") {
-      throw new Error("El rol, sucursal o ciudad seleccionada no existe");
-    }
-    throw new Error("Error al actualizar el empleado");
+  if (result.affectedRows === 0) {
+    throw new NotFoundError("Empleado no encontrado");
   }
 };
 
 export const deleteEmpleado = async (empleadoId: number) => {
-  try {
-    const [result] = await pool.query<ResultSetHeader>(
-      `DELETE FROM empleados WHERE empleado_id = ?`,
-      [empleadoId]
-    );
-    if (result.affectedRows === 0) throw new Error("Empleado no encontrado");
-    return result;
-  } catch (error: any) {
-    if (error.message === "Empleado no encontrado") throw error;
-    if (error.code === "ER_ROW_IS_REFERENCED_2") {
-      throw new Error("No se puede eliminar el empleado porque tiene registros asociados");
-    }
-    console.error("Error al eliminar empleado:", error);
-    throw new Error("Error al eliminar el empleado");
+  const [result] = await pool.query<ResultSetHeader>(
+    `DELETE FROM empleados WHERE empleado_id = ?`,
+    [empleadoId]
+  );
+  if (result.affectedRows === 0) {
+    throw new NotFoundError("Empleado no encontrado");
   }
+  return result;
 };
 
-/**
- * Seguridad login: buscar estado de bloqueo por correo (neutral)
- */
 export const getEmpleadoSecurityByCorreo = async (correo: string) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT empleado_id, is_locked, locked_until, failed_login_attempts
-       FROM empleados
-       WHERE correo = ?
-       LIMIT 1`,
-      [correo]
-    );
+  const [rows] = await pool.query(
+    `SELECT empleado_id, is_locked, locked_until, failed_login_attempts
+     FROM empleados
+     WHERE correo = ?
+     LIMIT 1`,
+    [correo]
+  );
 
-    const list = rows as any[];
-    if (list.length === 0) {
-      return {
-        exists: false,
-        empleado_id: null,
-        is_locked: false,
-        locked_until: null,
-        failed_login_attempts: 0,
-      };
-    }
-
-    const e = list[0];
+  const list = rows as any[];
+  if (list.length === 0) {
     return {
-      exists: true,
-      empleado_id: e.empleado_id,
-      is_locked: Boolean(e.is_locked),
-      locked_until: e.locked_until,
-      failed_login_attempts: Number(e.failed_login_attempts ?? 0),
+      exists: false,
+      empleado_id: null,
+      is_locked: false,
+      locked_until: null,
+      failed_login_attempts: 0,
     };
-  } catch (error: any) {
-    console.error("Error al consultar seguridad de empleado:", error);
-    throw new Error("Error al verificar el estado de la cuenta");
   }
+
+  const e = list[0];
+  return {
+    exists: true,
+    empleado_id: e.empleado_id,
+    is_locked: Boolean(e.is_locked),
+    locked_until: e.locked_until,
+    failed_login_attempts: Number(e.failed_login_attempts ?? 0),
+  };
 };
 
 export const recordLoginFailedByCorreo = async (

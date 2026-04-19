@@ -10,6 +10,7 @@ import {
 } from "./empleado.repository";
 import { CrearEmpleadoDTO, EditarEmpleadoDTO } from "./empleado.dto";
 import { hashPassword } from "./password.util";
+import { NotFoundError, ConflictError, BadRequestError } from "../../errors/http-errors";
 
 export const makeTempPassword = (length = 12) => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
@@ -27,10 +28,8 @@ const hasAddressPayload = (dto: Partial<CrearEmpleadoDTO | EditarEmpleadoDTO>) =
 
 const validateAddressConsistency = (dto: Partial<CrearEmpleadoDTO | EditarEmpleadoDTO>) => {
   if (hasAddressPayload(dto) && dto.ciudad_id == null) {
-    return "ciudad_id es obligatorio cuando se envían datos de dirección" as const;
+    throw new BadRequestError("ciudad_id es obligatorio cuando se envían datos de dirección");
   }
-
-  return null;
 };
 
 export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
@@ -38,11 +37,10 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
 
   const exists = await findEmpleadoByCorreo(correo);
   if (exists) {
-    return { error: "Ya existe un empleado con ese correo" as const };
+    throw new ConflictError("Ya existe un empleado con ese correo");
   }
 
-  const addressError = validateAddressConsistency(dto);
-  if (addressError) return { error: addressError };
+  validateAddressConsistency(dto);
 
   const tempPassword = makeTempPassword();
   const plainPassword = dto.contrasena?.trim() || tempPassword;
@@ -78,8 +76,7 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
     const saved = await getEmpleadoById(created.empleado_id);
 
     return {
-      ok: true as const,
-        message: "Empleado creado correctamente",
+      message: "Empleado creado correctamente",
       data: {
         ...saved,
         reset_password_link: resetLink,
@@ -93,10 +90,9 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
 
 export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmpleadoDTO) => {
   const empleado = await findEmpleadoById(empleadoId);
-  if (!empleado) return { error: "Empleado no encontrado" as const };
+  if (!empleado) throw new NotFoundError("Empleado no encontrado");
 
-  const addressError = validateAddressConsistency(dto);
-  if (addressError) return { error: addressError };
+  validateAddressConsistency(dto);
 
   const patch: Record<string, unknown> = {};
 
@@ -131,28 +127,18 @@ export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmple
   }
 
   const actualizado = await getEmpleadoById(empleadoId);
-  return { ok: true as const, message: "Empleado actualizado correctamente", data: actualizado };
+  return { message: "Empleado actualizado correctamente", data: actualizado };
 };
 
 export const eliminarEmpleadoService = async (empleadoId: number) => {
   const empleado = await findEmpleadoById(empleadoId);
-  if (!empleado) return { error: "Empleado no encontrado" as const };
+  if (!empleado) throw new NotFoundError("Empleado no encontrado");
 
-  try {
-    await deleteEmpleado(empleadoId);
-  } catch (error: any) {
-    if (error?.code === "ER_ROW_IS_REFERENCED_2" || error?.errno === 1451) {
-      return {
-        error: "No se puede eliminar el empleado porque tiene registros relacionados." as const,
-        code: "FK_CONSTRAINT" as const,
-      };
-    }
-    throw error;
-  }
+  await deleteEmpleado(empleadoId);
 
   if (empleado.firebase_uid) {
     await admin.auth().updateUser(empleado.firebase_uid, { disabled: true }).catch(() => {});
   }
 
-  return { ok: true as const };
+  return { message: "Empleado eliminado correctamente" };
 };

@@ -1,5 +1,6 @@
 import * as repo from "./sucursal.repository";
 import { CrearSucursalDTO, ActualizarSucursalDTO } from "./sucursal.dto";
+import { NotFoundError } from "../../errors/http-errors";
 
 export const listarSucursales = async () => {
   return await repo.getAllSucursales();
@@ -7,7 +8,7 @@ export const listarSucursales = async () => {
 
 export const obtenerSucursal = async (sucursal_id: number) => {
   const sucursal = await repo.findSucursalById(sucursal_id);
-  if (!sucursal) throw new Error("Sucursal no encontrada");
+  if (!sucursal) throw new NotFoundError("Sucursal no encontrada");
   return sucursal;
 };
 
@@ -15,7 +16,10 @@ export const crearSucursal = async (data: CrearSucursalDTO) => {
   return await repo.createSucursal(data);
 };
 
-export const actualizarSucursal = async (sucursal_id: number, data: ActualizarSucursalDTO) => {
+export const actualizarSucursal = async (
+  sucursal_id: number,
+  data: ActualizarSucursalDTO
+) => {
   return await repo.updateSucursal(sucursal_id, data);
 };
 
