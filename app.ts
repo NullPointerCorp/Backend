@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+
 import authRoutes from "./src/modules/auth/auth.routes";
 import sucursalRoutes from "./src/modules/sucursales/sucursal.routes";
 import empleadoRoutes from "./src/modules/empleados/empleado.routes";
@@ -9,6 +10,8 @@ import ubicacion from "./src/modules/ubicacion/ubicacion.routes";
 import almacenRoutes from "./src/modules/almacenes/almacen.routes";
 import tipoPaquetesRouter from './src/modules/tipo-paquetes/tipoPaquete.routes';
 import transporteRoutes from "./src/modules/transportes/transporte.routes";
+
+import { errorHandler } from "./src/middlewares/error-handler";
 
 const app = express();
 
@@ -33,5 +36,7 @@ app.use("/transporte", transporteRoutes);
 app.get("/test", (req, res) => {
   res.send("Ruta test funcionando");
 });
+
+app.use(errorHandler);
 
 export default app;

@@ -1,5 +1,6 @@
 import * as repo from "./tipoPaquete.repository";
 import { PaqueteDTO, CrearPaqueteDTO } from "./tipoPaquete.dto";
+import { NotFoundError } from "../../errors/http-errors";
 
 export const listarPaquetes = async (): Promise<PaqueteDTO[]> => {
   return await repo.getAllTipoPaquetes();
@@ -7,7 +8,7 @@ export const listarPaquetes = async (): Promise<PaqueteDTO[]> => {
 
 export const obtenerTipoPaquete = async (folio: number): Promise<PaqueteDTO> => {
   const paquete = await repo.findTipoPaqueteByFolio(folio);
-  if (!paquete) throw new Error("Paquete no encontrado");
+  if (!paquete) throw new NotFoundError("Paquete no encontrado");
   return paquete;
 };
 
@@ -15,7 +16,10 @@ export const crearTipoPaquete = async (data: CrearPaqueteDTO): Promise<PaqueteDT
   return await repo.createTipoPaquete(data);
 };
 
-export const actualizarTipoPaquete = async (folio: number, data: Partial<CrearPaqueteDTO>): Promise<PaqueteDTO> => {
+export const actualizarTipoPaquete = async (
+  folio: number,
+  data: Partial<CrearPaqueteDTO>
+): Promise<PaqueteDTO> => {
   return await repo.updateTipoPaquete(folio, data);
 };
 

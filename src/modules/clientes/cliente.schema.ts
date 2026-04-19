@@ -6,6 +6,7 @@ const telefonoRegex = /^\d{10}$/;
 export const crearClienteSchema = z.object({
   nombre: z
     .string({ required_error: "El nombre es requerido" })
+    .trim()
     .min(2, "Mínimo 2 caracteres")
     .max(60, "Máximo 60 caracteres")
     .regex(soloLetras, "Solo se permiten letras y espacios"),
