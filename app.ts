@@ -7,7 +7,7 @@ import rolRoutes from "./src/modules/roles/rol.routes";
 import clienteRoutes from "./src/modules/clientes/cliente.routes";
 import ubicacion from "./src/modules/ubicacion/ubicacion.routes";
 import almacenRoutes from "./src/modules/almacenes/almacen.routes";
-import paquetesRouter from './src/modules/paquetes/paquete.routes';
+import tipoPaquetesRouter from './src/modules/tipo-paquetes/tipoPaquete.routes';
 import transporteRoutes from "./src/modules/transportes/transporte.routes";
 
 const app = express();
@@ -27,7 +27,7 @@ app.use("/almacenes", almacenRoutes);
 app.use("/empleados", empleadoRoutes);
 app.use("/roles", rolRoutes);
 app.use("/clientes", clienteRoutes);
-app.use('/paquetes', paquetesRouter);
+app.use('/tipo-paquetes', tipoPaquetesRouter);
 app.use("/transporte", transporteRoutes);
 
 app.get("/test", (req, res) => {
