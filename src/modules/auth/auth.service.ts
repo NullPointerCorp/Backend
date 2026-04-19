@@ -9,6 +9,6 @@ export const getSessionByUid = async (uid: string): Promise<SessionDTO | null> =
     id: empleado.empleado_id,
     nombre: empleado.nombre,
     rol: empleado.rol,
-    id_rol: empleado.id_rol,
+    rol_id: empleado.rol_id,
   };
 };
