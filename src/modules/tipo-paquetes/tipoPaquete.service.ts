@@ -7,7 +7,7 @@ export const listarPaquetes = async (): Promise<PaqueteDTO[]> => {
 };
 
 export const obtenerTipoPaquete = async (folio: number): Promise<PaqueteDTO> => {
-  const paquete = await repo.findTipoPaqueteByFolio(folio);
+  const paquete = await repo.findTipoPaqueteByID(folio);
   if (!paquete) throw new NotFoundError("Paquete no encontrado");
   return paquete;
 };
