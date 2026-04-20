@@ -19,6 +19,13 @@ export const errorHandler = (
     });
   }
 
+  // Firebase
+  if (err.code === "auth/email-already-exists") {
+    return res.status(409).json({
+      message: "¡Este correo ya está registrado!",
+    });
+  }
+
   if (err.code === "ER_DUP_ENTRY" || err.errno === 1062) {
     return res.status(409).json({
       message: "¡Ya existe un registro con esos datos!",

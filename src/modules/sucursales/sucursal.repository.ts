@@ -76,7 +76,6 @@ export const updateSucursal = async (
   const [result] = await pool.query<ResultSetHeader>(
     `UPDATE sucursales SET 
       nombre_sucursal = ?,
-      ciudad_id = ?,
       colonia = ?,
       codigo_postal = ?,
       calle = ?,
@@ -88,7 +87,6 @@ export const updateSucursal = async (
      WHERE sucursal_id = ?`,
     [
       data.nombre_sucursal,
-      data.ciudad_id ?? null,
       data.colonia,
       data.codigo_postal,
       data.calle,

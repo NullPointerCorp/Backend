@@ -4,12 +4,7 @@ const tamanioValidos = ['Pequeño', 'Mediano', 'Grande', 'Extra Grande'] as cons
 const formaValidos = ['Cuadrada', 'Rectangular', 'Circular'] as const;
 
 export const crearPaqueteSchema = z.object({
-  cliente_id: z
-    .number({ required_error: "El cliente es requerido" })
-    .int()
-    .positive("Selecciona un cliente válido"),
-
-  tamano: z
+  tamanio: z
     .string({ required_error: "El tamaño es requerido" })
     .refine(
       (val) => tamanioValidos.includes(val as any),
@@ -35,7 +30,7 @@ export const crearPaqueteSchema = z.object({
 });
 
 export const actualizarPaqueteSchema = z.object({
-  tamano: z
+  tamanio: z
     .string()
     .refine((val) => tamanioValidos.includes(val as any), "Tamaño inválido"),
 
@@ -50,12 +45,6 @@ export const actualizarPaqueteSchema = z.object({
 
   precio: z
     .number()
-    .positive()
-    .nullish(),
-
-  cliente_id: z
-    .number()
-    .int()
     .positive()
     .nullish(),
 });
