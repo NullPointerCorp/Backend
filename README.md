@@ -1,4 +1,4 @@
-# Novacode
+# NovaCode
 
 Sistema web de gestión logística para empresas con múltiples sucursales. Permite registrar, asignar y rastrear envíos desde su origen hasta su destino, y administrar de forma centralizada la flota de transportes, el personal, los almacenes y los clientes.
 
