@@ -10,6 +10,7 @@ import ubicacion from "./src/modules/ubicacion/ubicacion.routes";
 import almacenRoutes from "./src/modules/almacenes/almacen.routes";
 import tipoPaquetesRouter from './src/modules/tipo-paquetes/tipoPaquete.routes';
 import transporteRoutes from "./src/modules/transportes/transporte.routes";
+import envioRoutes from "./src/modules/envios/envio.routes"
 
 import { errorHandler } from "./src/middlewares/error-handler";
 
@@ -32,6 +33,9 @@ app.use("/roles", rolRoutes);
 app.use("/clientes", clienteRoutes);
 app.use('/tipo-paquetes', tipoPaquetesRouter);
 app.use("/transporte", transporteRoutes);
+
+app.use("/envios", envioRoutes);
+
 
 app.get("/test", (req, res) => {
   res.send("Ruta test funcionando");
