@@ -89,3 +89,13 @@ export const updateEnvio = async (
 
   return (await findEnviolById(envio_id)) as EnvioDTO;
 };
+
+export const cancelarEnvio = async (envio_id: number): Promise<void> => {
+  const [result] = await pool.query<ResultSetHeader>(
+    `UPDATE envios SET estado_envio = 'cancelado' WHERE envio_id = ?`,
+    [envio_id],
+  );
+  if (result.affectedRows === 0) {
+    throw new NotFoundError("Envío no encontrado");
+  }
+};

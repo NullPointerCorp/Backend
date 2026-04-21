@@ -24,3 +24,9 @@ export const actualizarEnvio = async (
 ): Promise<EnvioDTO> => {
   return await repo.updateEnvio(envio_id, data);
 };
+
+export const cancelarEnvio = async (envio_id: number): Promise<void> => {
+  const envio = await repo.findEnviolById(envio_id);
+  if (!envio) throw new NotFoundError("Envío no encontrado");
+  await repo.cancelarEnvio(envio_id);
+};

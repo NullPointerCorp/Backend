@@ -18,3 +18,8 @@ export const actualizarEnvio = async (req: Request, res: Response) => {
   await service.actualizarEnvio(Number(req.params.id), req.body);
   return res.json({ message: "Envío actualizado correctamente" });
 };
+
+export const cancelarEnvio = async (req: Request, res: Response) => {
+  await service.cancelarEnvio(Number(req.params.id));
+  return res.json({ message: "¡El envío ha sido cancelado con éxito!" });
+};
