@@ -2,9 +2,11 @@ export interface EnvioDTO {
   envio_id: number;
   tipo_paquete_id: number;
   numero_serie: string;
+  descripcion: string;
   fecha_salida: string;
   fecha_llegada: string;
   estado_envio: string;
+  peso: number;
   origen_id: number;
   destino_id: number;
   cliente_id: number;

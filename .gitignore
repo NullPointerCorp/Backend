@@ -40,3 +40,8 @@ __screenshots__/
 
 #Env
 .env
+
+firebase.ts
+src/config/firebase.ts
+
+serviceAccountKey.json

@@ -10,7 +10,8 @@ export const obtenerEnvio = async (req: Request, res: Response) => {
 };
 
 export const crearEnvio = async (req: Request, res: Response) => {
-  return res.status(201).json(await service.crearEnvio(req.body));
+  const firebaseUid = (req as any).firebaseUid;
+  return res.status(201).json(await service.crearEnvio(req.body, firebaseUid));
 };
 
 export const actualizarEnvio = async (req: Request, res: Response) => {

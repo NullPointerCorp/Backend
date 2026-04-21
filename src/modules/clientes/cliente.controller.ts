@@ -45,7 +45,7 @@ export const eliminarCliente = async (req: Request, res: Response) => {
 };
 
 export const buscarPorCorreo = async (req: Request, res: Response) => {
-  const cliente = await service.buscarClientePorCorreo(String(req.query.correo));
+  const cliente = await service.buscarClientePorCorreo(String(req.params.correo));
   if (!cliente) throw new NotFoundError("Cliente no encontrado");
   return res.json(cliente);
 };

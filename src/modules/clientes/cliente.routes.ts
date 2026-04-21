@@ -4,7 +4,7 @@ import { listarClientes, obtenerCliente, crearCliente, actualizarCliente, elimin
 const router = Router();
 
 router.get("/", authMiddleware, listarClientes);
-router.get("/buscar", authMiddleware, buscarPorCorreo);
+router.get("/buscar/:correo", authMiddleware, buscarPorCorreo);
 router.get("/:id", authMiddleware, obtenerCliente);
 router.post("/nuevo", authMiddleware, crearCliente);
 router.put("/:id", authMiddleware, actualizarCliente);

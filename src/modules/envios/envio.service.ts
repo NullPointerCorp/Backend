@@ -12,8 +12,10 @@ export const obtenerEnvio = async (envio_id: number): Promise<EnvioDTO> => {
   return envio;
 };
 
-export const crearEnvio = async (data: CrearEnvioDTO): Promise<EnvioDTO> => {
-  return await repo.createEnvio(data);
+export const crearEnvio = async (data: CrearEnvioDTO, firebaseUid: string): Promise<EnvioDTO> => {
+  const origen_id = await repo.getSucursalIdByFirebaseUid(firebaseUid);
+  if (!origen_id) throw new NotFoundError("No se encontró la sucursal del empleado");
+  return await repo.createEnvio({ ...data, origen_id });
 };
 
 export const actualizarEnvio = async (
