@@ -1,4 +1,4 @@
-# NovacodesSP
+# NovaCode
 
 Sistema web de gestión logística para empresas con múltiples sucursales. Permite registrar, asignar y rastrear envíos desde su origen hasta su destino, y administrar de forma centralizada la flota de transportes, el personal, los almacenes y los clientes.
 
@@ -28,8 +28,8 @@ Sistema web de gestión logística para empresas con múltiples sucursales. Perm
 - Autenticación con Firebase Auth (correo/contraseña) con bloqueo automático de cuenta tras intentos fallidos y auditoría de accesos
 - Gestión de sucursales con dirección completa, coordenadas geográficas y supervisor asignado
 - Gestión de almacenes por sucursal con historial de movimientos de entrada y salida
-- Gestión de empleados con cinco roles diferenciados: Administrador, Supervisor, Operador, Conductor y Almacenista
-- Gestión de flota de transporte con tipo, subtipo, capacidad de carga y conductor asignado
+- Gestión de empleados con algunos roles diferenciados: Jefe, Supervisor de Sucursal, Recepcionista de Sucursal y Transportista
+- Gestión de flota de transporte con tipo, subtipo, capacidad de carga y transportista asignado
 - Gestión de clientes y catálogo de tipos de paquete con precio
 - Registro y seguimiento de envíos con estados: `registrado`, `en_camino`, `entregado`, `retrasado` y `devuelto`
 - Sistema de notificaciones y devoluciones sobre envíos
