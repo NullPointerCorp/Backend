@@ -5,13 +5,14 @@ import { NotFoundError } from "../../errors/http-errors";
 
 export const getAllEnvios = async (): Promise<EnvioConsultaDTO[]> => {
   const [rows] = await pool.query(
-    `SELECT envio_id, c.correo, e.descripcion, tp.tamanio, tp.forma, e.peso, CONCAT(em.nombre,' ',em.apellido_paterno) AS nombre_empleado, t.numero_serie, st.nombre_subtipo, e.fecha_salida, e.fecha_llegada, s_origen.nombre_sucursal AS origen, s_destino.nombre_sucursal AS destino, e.estado_envio
+    `SELECT envio_id, c.correo, tp.tamanio, tp.forma, 
+    CONCAT(em.nombre,' ',em.apellido_paterno) AS nombre_empleado, 
+    t.numero_serie, st.nombre_subtipo, e.fecha_salida, e.fecha_llegada, 
+    e.origen_id AS origen, e.destino_id AS destino, e.estado_envio
     FROM envios e
     INNER JOIN transportes t on t.numero_serie = e.numero_serie
     INNER JOIN tipo_paquetes tp on tp.tipo_paquete_id = e.tipo_paquete_id
     INNER JOIN empleados em on em.empleado_id = t.empleado_id
-    LEFT JOIN sucursales s_origen on s_origen.sucursal_id = e.origen_id
-    INNER JOIN sucursales s_destino on s_destino.sucursal_id = e.destino_id
     INNER JOIN subtipo_transporte st on st.subtipo_id = t.subtipo_id
     INNER JOIN clientes c on c.cliente_id = e.cliente_id
     ORDER BY envio_id`,
@@ -23,7 +24,7 @@ export const findEnviolById = async (
   envio_id: number,
 ): Promise<EnvioDTO | null> => {
   const [rows] = await pool.query(
-    `SELECT envio_id, tipo_paquete_id, numero_serie, descripcion, fecha_salida, fecha_llegada, estado_envio, peso, origen_id, destino_id, cliente_id
+    `SELECT envio_id, tipo_paquete_id, numero_serie, fecha_salida, fecha_llegada, estado_envio, origen_id, destino_id, cliente_id
      FROM envios
      WHERE envio_id = ?`,
     [envio_id],

@@ -5,7 +5,7 @@ import { NotFoundError } from "../../errors/http-errors";
 
 export const getAllRoles = async (): Promise<RolDTO[]> => {
   const [rows] = await pool.query(
-    `SELECT rol_id, rol_nombre, descripcion
+    `SELECT rol_id, nombre_rol, descripcion
      FROM roles
      ORDER BY rol_id`
   );
@@ -14,7 +14,7 @@ export const getAllRoles = async (): Promise<RolDTO[]> => {
 
 export const findRolById = async (rol_id: number): Promise<RolDTO | null> => {
   const [rows] = await pool.query(
-    `SELECT rol_id, rol_nombre, descripcion
+    `SELECT rol_id, nombre_rol, descripcion
      FROM roles
      WHERE rol_id = ?`,
     [rol_id]
@@ -25,8 +25,8 @@ export const findRolById = async (rol_id: number): Promise<RolDTO | null> => {
 
 export const createRol = async (data: CrearRolDTO): Promise<RolDTO> => {
   const [result] = await pool.query<ResultSetHeader>(
-    `INSERT INTO roles (rol_nombre, descripcion) VALUES (?, ?)`,
-    [data.rol_nombre, data.descripcion ?? null]
+    `INSERT INTO roles (nombre_rol, descripcion) VALUES (?, ?)`,
+    [data.nombre_rol, data.descripcion ?? null]
   );
   return await findRolById(result.insertId) as RolDTO;
 };
@@ -36,8 +36,8 @@ export const updateRol = async (
   data: EditarRolDTO
 ): Promise<RolDTO> => {
   const [result] = await pool.query<ResultSetHeader>(
-    `UPDATE roles SET rol_nombre = ?, descripcion = ? WHERE rol_id = ?`,
-    [data.rol_nombre, data.descripcion ?? null, rol_id]
+    `UPDATE roles SET nombre_rol = ?, descripcion = ? WHERE rol_id = ?`,
+    [data.nombre_rol, data.descripcion ?? null, rol_id]
   );
 
   if (result.affectedRows === 0) {

@@ -18,7 +18,7 @@ export type EmpleadoListadoRow = {
   numero_exterior: string | null;
   numero_interior: string | null;
   rol_id: number;
-  rol_nombre: string;
+  nombre_rol: string;
   sucursal_id: number | null;
   sucursal_nombre: string | null;
   is_locked: number;
@@ -42,7 +42,7 @@ const empleadoSelect = `SELECT
   e.numero_exterior,
   e.numero_interior,
   e.rol_id,
-  r.rol_nombre AS rol_nombre,
+  r.nombre_rol AS nombre_rol,
   e.sucursal_id,
   s.nombre_sucursal AS sucursal_nombre,
   e.is_locked,
@@ -69,9 +69,9 @@ export const getEmpleadoById = async (empleadoId: number) => {
 
 export const getRolesCatalogo = async () => {
   const [rows] = await pool.query(
-    `SELECT rol_id, rol_nombre
+    `SELECT rol_id, nombre_rol
      FROM roles
-     ORDER BY rol_nombre`
+     ORDER BY nombre_rol`
   );
   return rows as { rol_id: number; nombre: string }[];
 };
@@ -131,7 +131,7 @@ export const findEmpleadoByFirebaseUid = async (uid: string) => {
       e.correo, 
       e.is_locked, 
       r.rol_id, 
-      r.rol_nombre AS rol
+      r.nombre_rol AS rol
      FROM empleados e
      INNER JOIN roles r ON e.rol_id = r.rol_id
      WHERE e.firebase_uid = ?

@@ -1,6 +1,6 @@
 export interface RolDTO {
   rol_id: number;
-  rol_nombre: string;
+  nombre_rol: string;
   descripcion: string | null;
 }
 
