@@ -11,6 +11,7 @@ import almacenRoutes from "./src/modules/almacenes/almacen.routes";
 import tipoPaquetesRouter from './src/modules/tipo-paquetes/tipoPaquete.routes';
 import transporteRoutes from "./src/modules/transportes/transporte.routes";
 import envioRoutes from "./src/modules/envios/envio.routes"
+import viajeRoutes from "./src/modules/viajes/viaje.routes";
 
 import { errorHandler } from "./src/middlewares/error-handler";
 
@@ -33,6 +34,7 @@ app.use("/roles", rolRoutes);
 app.use("/clientes", clienteRoutes);
 app.use('/tipo-paquetes', tipoPaquetesRouter);
 app.use("/transporte", transporteRoutes);
+app.use("/viajes", viajeRoutes);
 
 app.use("/envios", envioRoutes);
 

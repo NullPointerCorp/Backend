@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
-import { listarEnvios, obtenerEnvio, crearEnvio, actualizarEnvio, cancelarEnvio } from "./envio.controller";
+import { listarEnviosEmpleado, listarEnvios, obtenerEnvio, crearEnvio, actualizarEnvio, cancelarEnvio } from "./envio.controller";
 
 const router = Router();
 
+router.get("/empleado/:empleado_id", authMiddleware, listarEnviosEmpleado);
 router.get("/", authMiddleware, listarEnvios);
 router.get("/:id", authMiddleware, obtenerEnvio);
 router.post("/nuevo", authMiddleware, crearEnvio);

@@ -12,6 +12,7 @@ import {
   listarSupervisores,
   obtenerEmpleado,
   listarTransportistas,
+  listarTransportistasSucursalActual,
 } from "./empleado.controller";
 
 const router = Router();
@@ -20,6 +21,7 @@ router.get("/", authMiddleware, listarEmpleados);
 router.get("/roles", authMiddleware, listarRoles);
 router.get("/sucursales", authMiddleware, listarSucursalesCatalogo);
 router.get("/supervisores", authMiddleware, listarSupervisores);
+router.get('/transportistas/sucursal-actual', authMiddleware, listarTransportistasSucursalActual);
 router.get('/transportistas', authMiddleware, listarTransportistas);
 router.get("/:id", authMiddleware, validate(empleadoIdParamSchema, "params"), obtenerEmpleado);
 

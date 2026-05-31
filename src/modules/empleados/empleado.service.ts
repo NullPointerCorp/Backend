@@ -60,7 +60,6 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
       apellido_materno: dto.apellido_materno ?? null,
       telefono: dto.telefono ?? null,
       correo,
-      contrasena_hash: passwordHash,
       rol_id: Number(dto.rol_id),
       sucursal_id: dto.sucursal_id != null ? Number(dto.sucursal_id) : null,
       ciudad_id: dto.ciudad_id != null ? Number(dto.ciudad_id) : null,

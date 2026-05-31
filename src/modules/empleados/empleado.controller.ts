@@ -6,6 +6,7 @@ import {
   getSucursalesCatalogo,
   getSupervisores,
   getTransportistas,
+  getTransportistasBySupervisorUid,
 } from "./empleado.repository";
 import {
   crearEmpleadoService,
@@ -39,6 +40,11 @@ export const listarSupervisores = async (req: Request, res: Response) => {
 
 export const listarTransportistas = async (req: Request, res: Response) => {
   return res.json(await getTransportistas());
+};
+
+export const listarTransportistasSucursalActual = async (req: Request, res: Response) => {
+  const firebaseUid = (req as any).firebaseUid;
+  return res.json(await getTransportistasBySupervisorUid(firebaseUid));
 };
 
 export const crearEmpleado = async (req: Request, res: Response) => {

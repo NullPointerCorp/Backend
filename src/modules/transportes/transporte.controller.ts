@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import * as service from "./transporte.service";
 
+export const listarTransportesSucursal = async (req: Request, res: Response) => {
+  return res.json(await service.listarTransportesSucursal(Number(req.params.empleado_id)));
+};
+
 export const listarTransportes = async (req: Request, res: Response) => {
   return res.json(await service.listarTransportes());
 };

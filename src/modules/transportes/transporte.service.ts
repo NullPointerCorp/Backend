@@ -2,6 +2,10 @@ import * as repo from "./transporte.repository";
 import { CrearTransporteDTO, ActualizarTransporteDTO } from "./transporte.dto";
 import { NotFoundError } from "../../errors/http-errors";
 
+export const listarTransportesSucursal = async (empleado_id : number) => {
+  return await repo.getAllTransportesSucursal(empleado_id);
+};
+
 export const listarTransportes = async () => {
   return await repo.getAllTransportes();
 };

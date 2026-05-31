@@ -1,6 +1,7 @@
 export interface CrearTransporteDTO {
   numero_serie: string
-  empleado_id: number
+  sucursal_id: number
+  empleado_id?: number | null
   subtipo_id: number
   capacidad_carga: number
   unidad_medida: string
@@ -8,7 +9,8 @@ export interface CrearTransporteDTO {
 }
 
 export interface ActualizarTransporteDTO {
-  empleado_id?: number
+  empleado_id?: number | null
+  sucursal_id?: number
   capacidad_carga?: number
   unidad_medida?: string
   placa?: string

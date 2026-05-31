@@ -105,6 +105,22 @@ export const getTransportistas = async () => {
   return rows as any[];
 };
 
+export const getTransportistasBySupervisorUid = async (firebaseUid: string) => {
+  const [rows] = await pool.query(
+    `SELECT
+      e.empleado_id,
+      e.nombre,
+      e.apellido_paterno
+     FROM empleados supervisor
+     INNER JOIN empleados e ON e.sucursal_id = supervisor.sucursal_id
+     WHERE supervisor.firebase_uid = ?
+       AND e.rol_id = 4
+     ORDER BY e.nombre`,
+    [firebaseUid]
+  );
+  return rows as any[];
+};
+
 export const findEmpleadoById = async (empleadoId: number) => {
   const [rows] = await pool.query(
     `SELECT * FROM empleados WHERE empleado_id = ? LIMIT 1`,
@@ -148,7 +164,6 @@ export const insertEmpleado = async (data: {
   apellido_materno: string | null;
   telefono: string | null;
   correo: string;
-  contrasena_hash: string;
   rol_id: number;
   sucursal_id: number | null;
   ciudad_id: number | null;
@@ -161,7 +176,7 @@ export const insertEmpleado = async (data: {
 }) => {
   const [result] = await pool.query<ResultSetHeader>(
     `INSERT INTO empleados (
-      nombre, apellido_paterno, apellido_materno, telefono, correo, contrasena,
+      nombre, apellido_paterno, apellido_materno, telefono, correo,
       rol_id, sucursal_id, ciudad_id, colonia, codigo_postal, calle, numero_exterior, numero_interior, firebase_uid
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -170,7 +185,6 @@ export const insertEmpleado = async (data: {
       data.apellido_materno,
       data.telefono,
       data.correo,
-      data.contrasena_hash,
       data.rol_id,
       data.sucursal_id,
       data.ciudad_id,
