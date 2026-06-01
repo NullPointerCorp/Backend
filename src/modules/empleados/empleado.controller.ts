@@ -2,22 +2,33 @@ import { Request, Response } from "express";
 import {
   getAllEmpleados,
   getEmpleadoById,
+  getEmpleadosBySucursalId,
   getRolesCatalogo,
   getSucursalesCatalogo,
   getSupervisores,
   getTransportistas,
   getTransportistasBySupervisorUid,
+  findEmpleadoByFirebaseUid,
 } from "./empleado.repository";
 import {
   crearEmpleadoService,
   editarEmpleadoService,
   eliminarEmpleadoService,
 } from "./empleado.service";
-import { NotFoundError, BadRequestError } from "../../errors/http-errors";
+import { NotFoundError, BadRequestError, ForbiddenError } from "../../errors/http-errors";
 
 export const listarEmpleados = async (req: Request, res: Response) => {
-  const empleados = await getAllEmpleados();
-  return res.json(empleados);
+  const firebaseUid = (req as any).firebaseUid;
+  const caller = await findEmpleadoByFirebaseUid(firebaseUid);
+  if (!caller) throw new ForbiddenError("No autorizado");
+
+  if (caller.rol?.toLowerCase() === "administrador") {
+    return res.json(await getAllEmpleados());
+  }
+
+  if (!caller.sucursal_id) return res.json([]);
+
+  return res.json(await getEmpleadosBySucursalId(caller.sucursal_id));
 };
 
 export const obtenerEmpleado = async (req: Request, res: Response) => {
@@ -48,8 +59,9 @@ export const listarTransportistasSucursalActual = async (req: Request, res: Resp
 };
 
 export const crearEmpleado = async (req: Request, res: Response) => {
+  const firebaseUid = (req as any).firebaseUid;
   const { estado_id, ...body } = req.body ?? {};
-  const result = await crearEmpleadoService(body);
+  const result = await crearEmpleadoService(body, firebaseUid);
   return res.status(201).json(result);
 };
 
@@ -57,8 +69,9 @@ export const editarEmpleado = async (req: Request, res: Response) => {
   const empleadoId = Number(req.params.id);
   if (!empleadoId) throw new BadRequestError("ID inválido");
 
+  const firebaseUid = (req as any).firebaseUid;
   const { estado_id, ...body } = req.body ?? {};
-  const result = await editarEmpleadoService(empleadoId, body);
+  const result = await editarEmpleadoService(empleadoId, body, firebaseUid);
   return res.json(result);
 };
 
@@ -66,6 +79,7 @@ export const eliminarEmpleado = async (req: Request, res: Response) => {
   const empleadoId = Number(req.params.id);
   if (!empleadoId) throw new BadRequestError("ID inválido");
 
-  const result = await eliminarEmpleadoService(empleadoId);
+  const firebaseUid = (req as any).firebaseUid;
+  const result = await eliminarEmpleadoService(empleadoId, firebaseUid);
   return res.json(result);
 };

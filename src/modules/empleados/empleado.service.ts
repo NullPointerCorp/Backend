@@ -4,13 +4,16 @@ import {
   deleteEmpleado,
   findEmpleadoByCorreo,
   findEmpleadoById,
+  findEmpleadoByFirebaseUid,
+  findRolById,
+  findSupervisorBySucursalId,
   getEmpleadoById,
   insertEmpleado,
   updateEmpleado,
 } from "./empleado.repository";
 import { CrearEmpleadoDTO, EditarEmpleadoDTO } from "./empleado.dto";
 import { hashPassword } from "./password.util";
-import { NotFoundError, ConflictError, BadRequestError } from "../../errors/http-errors";
+import { NotFoundError, ConflictError, BadRequestError, ForbiddenError } from "../../errors/http-errors";
 
 export const makeTempPassword = (length = 12) => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
@@ -32,7 +35,22 @@ const validateAddressConsistency = (dto: Partial<CrearEmpleadoDTO | EditarEmplea
   }
 };
 
-export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
+export const crearEmpleadoService = async (dto: CrearEmpleadoDTO, firebaseUid: string) => {
+  const caller = await findEmpleadoByFirebaseUid(firebaseUid);
+  if (!caller) throw new ForbiddenError("No autorizado");
+
+  const nuevoRol = await findRolById(Number(dto.rol_id));
+  const esNuevoSupervisor = nuevoRol?.rol_nombre?.toLowerCase() === "supervisor";
+
+  if (caller.rol?.toLowerCase() === "supervisor" && esNuevoSupervisor) {
+    throw new ForbiddenError("Un supervisor no puede registrar a otro supervisor");
+  }
+
+  if (esNuevoSupervisor && dto.sucursal_id) {
+    const yaExiste = await findSupervisorBySucursalId(Number(dto.sucursal_id));
+    if (yaExiste) throw new ConflictError("Ya existe un supervisor para esta sucursal");
+  }
+
   const correo = dto.correo.trim().toLowerCase();
 
   const exists = await findEmpleadoByCorreo(correo);
@@ -87,9 +105,20 @@ export const crearEmpleadoService = async (dto: CrearEmpleadoDTO) => {
   }
 };
 
-export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmpleadoDTO) => {
+export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmpleadoDTO, firebaseUid: string) => {
+  const caller = await findEmpleadoByFirebaseUid(firebaseUid);
+  if (!caller) throw new ForbiddenError("No autorizado");
+
+  if (caller.empleado_id === empleadoId)
+    throw new BadRequestError("No puedes editar tu propio usuario");
+
+  const empleadoConRol = await getEmpleadoById(empleadoId);
+  if (!empleadoConRol) throw new NotFoundError("Empleado no encontrado");
+
+  if (empleadoConRol.rol_nombre?.toLowerCase() === "administrador")
+    throw new ForbiddenError("No se puede editar a un administrador");
+
   const empleado = await findEmpleadoById(empleadoId);
-  if (!empleado) throw new NotFoundError("Empleado no encontrado");
 
   validateAddressConsistency(dto);
 
@@ -101,7 +130,8 @@ export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmple
   if (dto.telefono !== undefined) patch.telefono = dto.telefono;
   if (dto.correo != null) patch.correo = dto.correo.trim().toLowerCase();
   if (dto.rol_id != null) patch.rol_id = Number(dto.rol_id);
-  if (dto.sucursal_id !== undefined) patch.sucursal_id = dto.sucursal_id != null ? Number(dto.sucursal_id) : null;
+  if (dto.sucursal_id !== undefined && caller.rol?.toLowerCase() !== "supervisor")
+    patch.sucursal_id = dto.sucursal_id != null ? Number(dto.sucursal_id) : null;
   if (dto.ciudad_id !== undefined) patch.ciudad_id = dto.ciudad_id != null ? Number(dto.ciudad_id) : null;
   if (dto.colonia !== undefined) patch.colonia = dto.colonia;
   if (dto.codigo_postal !== undefined) patch.codigo_postal = dto.codigo_postal;
@@ -129,9 +159,20 @@ export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmple
   return { message: "Empleado actualizado correctamente", data: actualizado };
 };
 
-export const eliminarEmpleadoService = async (empleadoId: number) => {
+export const eliminarEmpleadoService = async (empleadoId: number, firebaseUid: string) => {
+  const caller = await findEmpleadoByFirebaseUid(firebaseUid);
+  if (!caller) throw new ForbiddenError("No autorizado");
+
+  if (caller.empleado_id === empleadoId)
+    throw new BadRequestError("No puedes eliminar tu propio usuario");
+
+  const empleadoConRol = await getEmpleadoById(empleadoId);
+  if (!empleadoConRol) throw new NotFoundError("Empleado no encontrado");
+
+  if (empleadoConRol.rol_nombre?.toLowerCase() === "administrador")
+    throw new ForbiddenError("No se puede eliminar a un administrador");
+
   const empleado = await findEmpleadoById(empleadoId);
-  if (!empleado) throw new NotFoundError("Empleado no encontrado");
 
   await deleteEmpleado(empleadoId);
 

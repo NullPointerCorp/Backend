@@ -1,6 +1,6 @@
 import { ResultSetHeader } from "mysql2/promise";
 import { pool } from "../../config/database";
-import { CrearViajeDTO, TipoFiltroViaje, ViajeConsultaDTO } from "./viaje.dto";
+import { ActualizarViajeDTO, CrearViajeDTO, EstadoViaje, TipoFiltroViaje, ViajeConsultaDTO } from "./viaje.dto";
 
 export const findEmpleadoContextByFirebaseUid = async (uid: string) => {
   const [rows] = await pool.query(
@@ -31,7 +31,8 @@ const viajeSelect = `
     v.sucursal_destino_id,
     sd.nombre_sucursal AS destino,
     v.fecha_salida,
-    v.fecha_llegada
+    v.fecha_llegada,
+    v.estado
   FROM viajes v
   INNER JOIN transportes t ON t.numero_serie = v.numero_serie
   LEFT JOIN empleados e ON e.empleado_id = t.empleado_id
@@ -81,6 +82,33 @@ export const getSucursalesDestino = async (sucursalOrigenId: number) => {
   return rows as any[];
 };
 
+export const getTransportesDisponibles = async (
+  sucursalId: number,
+  fechaSalida: string,
+  fechaLlegada: string,
+  excluirViajeId?: number
+) => {
+  const query = `
+    SELECT numero_serie, placa, capacidad_carga, unidad_medida
+    FROM transportes
+    WHERE sucursal_id = ?
+      AND numero_serie NOT IN (
+        SELECT numero_serie FROM viajes
+        WHERE estado NOT IN ('finalizado', 'cancelado')
+          AND (
+            (fecha_salida < ? AND fecha_llegada > ?)
+            OR fecha_llegada <= NOW()
+          )
+          ${excluirViajeId ? "AND viaje_id <> ?" : ""}
+      )
+    ORDER BY numero_serie
+  `;
+  const params: any[] = [sucursalId, fechaLlegada, fechaSalida];
+  if (excluirViajeId) params.push(excluirViajeId);
+  const [rows] = await pool.query(query, params);
+  return rows as any[];
+};
+
 export const getTransportesBySucursal = async (sucursalId: number) => {
   const [rows] = await pool.query(
     `SELECT
@@ -106,16 +134,57 @@ export const createViaje = async (
       sucursal_origen_id,
       sucursal_destino_id,
       fecha_salida,
-      fecha_llegada
-    ) VALUES (?, ?, ?, ?, ?)`,
+      fecha_llegada,
+      estado
+    ) VALUES (?, ?, ?, ?, ?, 'programado')`,
     [
       data.numero_serie,
       sucursalOrigenId,
       data.sucursal_destino_id,
       data.fecha_salida,
-      data.fecha_llegada || null,
+      data.fecha_llegada,
     ]
   );
 
   return (await findViajeById(result.insertId)) as ViajeConsultaDTO;
+};
+
+export const findViajeTranslapado = async (
+  numeroSerie: string,
+  fechaSalida: string,
+  fechaLlegada: string,
+  excluirViajeId?: number
+): Promise<boolean> => {
+  const query = `
+    SELECT 1 FROM viajes
+    WHERE numero_serie = ?
+      AND estado NOT IN ('finalizado', 'cancelado')
+      AND (
+        (fecha_salida < ? AND fecha_llegada > ?)
+        OR fecha_llegada <= NOW()
+      )
+      ${excluirViajeId ? "AND viaje_id <> ?" : ""}
+    LIMIT 1
+  `;
+  const params: any[] = [numeroSerie, fechaLlegada, fechaSalida];
+  if (excluirViajeId) params.push(excluirViajeId);
+
+  const [rows] = await pool.query(query, params);
+  return (rows as any[]).length > 0;
+};
+
+export const updateViaje = async (
+  viajeId: number,
+  data: ActualizarViajeDTO
+): Promise<ViajeConsultaDTO> => {
+  await pool.query(
+    `UPDATE viajes SET numero_serie = ?, fecha_salida = ?, fecha_llegada = ? WHERE viaje_id = ?`,
+    [data.numero_serie, data.fecha_salida, data.fecha_llegada || null, viajeId]
+  );
+  return (await findViajeById(viajeId)) as ViajeConsultaDTO;
+};
+
+export const updateViajeEstado = async (viajeId: number, estado: EstadoViaje): Promise<ViajeConsultaDTO> => {
+  await pool.query(`UPDATE viajes SET estado = ? WHERE viaje_id = ?`, [estado, viajeId]);
+  return (await findViajeById(viajeId)) as ViajeConsultaDTO;
 };

@@ -141,12 +141,13 @@ export const findEmpleadoByCorreo = async (correo: string) => {
 
 export const findEmpleadoByFirebaseUid = async (uid: string) => {
   const [rows] = await pool.query(
-    `SELECT 
-      e.empleado_id, 
-      e.nombre, 
-      e.correo, 
-      e.is_locked, 
-      r.rol_id, 
+    `SELECT
+      e.empleado_id,
+      e.nombre,
+      e.correo,
+      e.is_locked,
+      e.sucursal_id,
+      r.rol_id,
       r.rol_nombre AS rol
      FROM empleados e
      INNER JOIN roles r ON e.rol_id = r.rol_id
@@ -156,6 +157,38 @@ export const findEmpleadoByFirebaseUid = async (uid: string) => {
   );
   const list = rows as any[];
   return list.length ? list[0] : null;
+};
+
+export const findRolById = async (rolId: number) => {
+  const [rows] = await pool.query(
+    `SELECT rol_id, rol_nombre FROM roles WHERE rol_id = ? LIMIT 1`,
+    [rolId]
+  );
+  const list = rows as any[];
+  return list.length ? list[0] as { rol_id: number; rol_nombre: string } : null;
+};
+
+export const findSupervisorBySucursalId = async (sucursalId: number) => {
+  const [rows] = await pool.query(
+    `SELECT e.empleado_id FROM empleados e
+     INNER JOIN roles r ON e.rol_id = r.rol_id
+     WHERE e.sucursal_id = ? AND r.rol_nombre = 'supervisor'
+     LIMIT 1`,
+    [sucursalId]
+  );
+  const list = rows as any[];
+  return list.length ? list[0] : null;
+};
+
+export const getEmpleadosBySucursalId = async (sucursalId: number) => {
+  const [rows] = await pool.query(
+    `${empleadoSelect}
+     WHERE e.sucursal_id = ?
+       AND r.rol_nombre != 'administrador'
+     ORDER BY e.empleado_id ASC`,
+    [sucursalId]
+  );
+  return rows as EmpleadoListadoRow[];
 };
 
 export const insertEmpleado = async (data: {
@@ -178,7 +211,7 @@ export const insertEmpleado = async (data: {
     `INSERT INTO empleados (
       nombre, apellido_paterno, apellido_materno, telefono, correo,
       rol_id, sucursal_id, ciudad_id, colonia, codigo_postal, calle, numero_exterior, numero_interior, firebase_uid
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.nombre,
       data.apellido_paterno,
