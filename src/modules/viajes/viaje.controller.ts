@@ -41,6 +41,13 @@ export const actualizarViaje = async (req: Request, res: Response) => {
   return res.json(await service.actualizarViaje(firebaseUid, viajeId, req.body));
 };
 
+export const eliminarViaje = async (req: Request, res: Response) => {
+  const firebaseUid = (req as any).firebaseUid;
+  const viajeId = Number(req.params.viaje_id);
+  await service.eliminarViaje(firebaseUid, viajeId);
+  return res.json({ message: "Viaje eliminado con éxito" });
+};
+
 export const cancelarViaje = async (req: Request, res: Response) => {
   const firebaseUid = (req as any).firebaseUid;
   const viajeId = Number(req.params.viaje_id);
@@ -49,7 +56,8 @@ export const cancelarViaje = async (req: Request, res: Response) => {
 
 // Endpoints para app móvil
 export const iniciarViaje = async (req: Request, res: Response) => {
-  return res.json(await service.iniciarViaje(Number(req.params.viaje_id)));
+  const firebaseUid = (req as any).firebaseUid;
+  return res.json(await service.iniciarViaje(Number(req.params.viaje_id), firebaseUid));
 };
 
 export const finalizarViaje = async (req: Request, res: Response) => {
@@ -62,4 +70,8 @@ export const iniciarRegreso = async (req: Request, res: Response) => {
 
 export const confirmarRegreso = async (req: Request, res: Response) => {
   return res.json(await service.confirmarRegreso(Number(req.params.viaje_id)));
+};
+
+export const listarViajesTransportista = async (req: Request, res: Response) => {
+  return res.json(await service.listarViajesTransportista(Number(req.params.empleado_id)));
 };

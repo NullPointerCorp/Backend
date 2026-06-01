@@ -1,6 +1,7 @@
 import { ResultSetHeader } from "mysql2/promise";
 import { pool } from "../../config/database";
-import { ActualizarViajeDTO, CrearViajeDTO, EstadoViaje, TipoFiltroViaje, ViajeConsultaDTO } from "./viaje.dto";
+import { ActualizarViajeDTO, CrearViajeDTO, EstadoViaje, TipoFiltroViaje, ViajeConsultaDTO, ViajeTransportistaDTO } from "./viaje.dto";
+import { NotFoundError } from "../../errors/http-errors";
 
 export const findEmpleadoContextByFirebaseUid = async (uid: string) => {
   const [rows] = await pool.query(
@@ -187,4 +188,50 @@ export const updateViaje = async (
 export const updateViajeEstado = async (viajeId: number, estado: EstadoViaje): Promise<ViajeConsultaDTO> => {
   await pool.query(`UPDATE viajes SET estado = ? WHERE viaje_id = ?`, [estado, viajeId]);
   return (await findViajeById(viajeId)) as ViajeConsultaDTO;
+};
+
+export const deleteViaje = async (viajeId: number): Promise<void> => {
+  const [result] = await pool.query<ResultSetHeader>(
+    `DELETE FROM viajes WHERE viaje_id = ?`,
+    [viajeId]
+  );
+  if (result.affectedRows === 0) throw new NotFoundError("Viaje no encontrado");
+};
+
+export const getViajeActivoByTransportista = async (empleado_id: number): Promise<boolean> => {
+  const [rows] = await pool.query(
+    `SELECT 1 FROM viajes v
+     INNER JOIN transportes t ON t.numero_serie = v.numero_serie
+     WHERE t.empleado_id = ?
+     AND v.estado IN ('en_camino', 'entregado', 'regresando')
+     LIMIT 1`,
+    [empleado_id]
+  );
+  return (rows as any[]).length > 0;
+};
+
+export const getViajesTransportista = async (
+  empleado_id: number
+): Promise<ViajeTransportistaDTO[]> => {
+  const [rows] = await pool.query(
+    `SELECT 
+      v.viaje_id,
+      so.nombre_sucursal AS origen,
+      sd.nombre_sucursal AS destino,
+      v.fecha_salida,
+      v.fecha_llegada,
+      v.estado,
+      COUNT(e.envio_id) AS total_envios
+    FROM viajes v
+    INNER JOIN transportes t ON t.numero_serie = v.numero_serie
+    INNER JOIN sucursales so ON so.sucursal_id = v.sucursal_origen_id
+    INNER JOIN sucursales sd ON sd.sucursal_id = v.sucursal_destino_id
+    LEFT JOIN envios e ON e.viaje_id = v.viaje_id
+    WHERE t.empleado_id = ?
+    AND v.estado NOT IN ('cancelado')
+    GROUP BY v.viaje_id, so.nombre_sucursal, sd.nombre_sucursal, v.fecha_salida, v.fecha_llegada, v.estado
+    ORDER BY v.fecha_salida ASC`,
+    [empleado_id]
+  );
+  return rows as ViajeTransportistaDTO[];
 };

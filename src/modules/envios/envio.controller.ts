@@ -27,3 +27,5 @@ export const cancelarEnvio = async (req: Request, res: Response) => {
   await service.cancelarEnvio(Number(req.params.id));
   return res.json({ message: "¡El envío ha sido cancelado con éxito!" });
 };
+
+

@@ -3,7 +3,7 @@ import {
   EnvioDTO,
   CrearEnvioDTO,
   EditarEnvioDTO,
-  EnvioConsultaDTO,
+  EnvioConsultaDTO
 } from "./envio.dto";
 import { ResultSetHeader } from "mysql2/promise";
 import { NotFoundError } from "../../errors/http-errors";
@@ -248,13 +248,6 @@ export const updateEnviosByViajeId = async (
   );
 };
 
-export const liberarEnviosDeViaje = async (viajeId: number): Promise<void> => {
-  await pool.query(
-    `UPDATE envios SET estado_envio = 'en_espera', viaje_id = NULL WHERE viaje_id = ? AND estado_envio = 'registrado'`,
-    [viajeId]
-  );
-};
-
 export const asignarEnvioAViaje = async (
   envioId: number,
   viajeId: number,
@@ -268,4 +261,11 @@ export const asignarEnvioAViaje = async (
     [viajeId, envioId],
   );
   return result.affectedRows > 0;
+};
+
+export const liberarEnviosDeViaje = async (viajeId: number): Promise<void> => {
+  await pool.query(
+    `UPDATE envios SET estado_envio = 'en_espera', viaje_id = NULL WHERE viaje_id = ? AND estado_envio = 'registrado'`,
+    [viajeId]
+  );
 };

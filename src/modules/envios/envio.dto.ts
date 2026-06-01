@@ -27,15 +27,17 @@ export interface EnvioConsultaDTO {
   tamanio: string;
   forma: string;
   peso: number;
-  nombre_empleado: string; 
+  nombre_empleado: string;
   numero_serie: string | null;
   nombre_subtipo: string | null;
   fecha_salida: string | null;
   fecha_llegada: string | null;
-  origen: string;          
+  origen: string;
   destino: string;
   estado_envio: string;
   empleado_id: number;
 }
 
 export type EditarEnvioDTO = Omit<EnvioDTO, 'envio_id'>
+
+

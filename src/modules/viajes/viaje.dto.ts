@@ -28,3 +28,13 @@ export interface ViajeConsultaDTO {
   fecha_llegada: string;
   estado: EstadoViaje;
 }
+
+export interface ViajeTransportistaDTO {
+  viaje_id: number;
+  origen: string;
+  destino: string;
+  fecha_salida: string;
+  fecha_llegada: string;
+  estado: EstadoViaje;
+  total_envios: number;
+}

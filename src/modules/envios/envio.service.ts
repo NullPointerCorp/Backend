@@ -99,3 +99,4 @@ export const cancelarEnvio = async (envio_id: number): Promise<void> => {
   if (!envio) throw new NotFoundError("Envío no encontrado");
   await repo.cancelarEnvio(envio_id);
 };
+
