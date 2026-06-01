@@ -12,7 +12,7 @@ const getActor = async (firebaseUid: string) => {
   if (!actor.sucursal_id) throw new BadRequestError("El usuario no tiene sucursal asignada");
 
   const rol = normalizeRole(actor.rol);
-  if (rol !== "administrador" && rol !== "supervisor") {
+  if (rol !== "jefe" && rol !== "supervisor") {
     throw new ForbiddenError("No tienes permisos para acceder a viajes");
   }
 
@@ -22,7 +22,7 @@ const getActor = async (firebaseUid: string) => {
 export const listarViajes = async (firebaseUid: string, tipo: TipoFiltroViaje) => {
   const actor = await getActor(firebaseUid);
 
-  if (actor.rol === "administrador" && tipo == "todos") {
+  if (actor.rol === "jefe" && tipo == "todos") {
     return await repo.getAllViajes();
   }
 

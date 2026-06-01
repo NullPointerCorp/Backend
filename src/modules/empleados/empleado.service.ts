@@ -115,8 +115,8 @@ export const editarEmpleadoService = async (empleadoId: number, dto: EditarEmple
   const empleadoConRol = await getEmpleadoById(empleadoId);
   if (!empleadoConRol) throw new NotFoundError("Empleado no encontrado");
 
-  if (empleadoConRol.rol_nombre?.toLowerCase() === "administrador")
-    throw new ForbiddenError("No se puede editar a un administrador");
+  if (empleadoConRol.rol_nombre?.toLowerCase() === "jefe")
+    throw new ForbiddenError("No se puede editar a un jefe");
 
   const empleado = await findEmpleadoById(empleadoId);
 
@@ -169,8 +169,8 @@ export const eliminarEmpleadoService = async (empleadoId: number, firebaseUid: s
   const empleadoConRol = await getEmpleadoById(empleadoId);
   if (!empleadoConRol) throw new NotFoundError("Empleado no encontrado");
 
-  if (empleadoConRol.rol_nombre?.toLowerCase() === "administrador")
-    throw new ForbiddenError("No se puede eliminar a un administrador");
+  if (empleadoConRol.rol_nombre?.toLowerCase() === "jefe")
+    throw new ForbiddenError("No se puede eliminar a un jefe");
 
   const empleado = await findEmpleadoById(empleadoId);
 

@@ -184,7 +184,7 @@ export const getEmpleadosBySucursalId = async (sucursalId: number) => {
   const [rows] = await pool.query(
     `${empleadoSelect}
      WHERE e.sucursal_id = ?
-       AND r.rol_nombre != 'administrador'
+       AND r.rol_nombre != 'jefe'
      ORDER BY e.empleado_id ASC`,
     [sucursalId]
   );

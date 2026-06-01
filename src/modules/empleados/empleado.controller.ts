@@ -22,7 +22,7 @@ export const listarEmpleados = async (req: Request, res: Response) => {
   const caller = await findEmpleadoByFirebaseUid(firebaseUid);
   if (!caller) throw new ForbiddenError("No autorizado");
 
-  if (caller.rol?.toLowerCase() === "administrador") {
+  if (caller.rol?.toLowerCase() === "jefe") {
     return res.json(await getAllEmpleados());
   }
 
