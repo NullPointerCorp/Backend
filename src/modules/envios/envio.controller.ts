@@ -9,6 +9,10 @@ export const listarEnviosEmpleado = async (req: Request, res: Response) => {
   return res.json(await service.listarEnviosEmpleado(Number(req.params.empleado_id)));
 };
 
+export const listarEnviosSucursal = async (req: Request, res: Response) => {
+  return res.json(await service.listarEnviosSucursal(Number(req.params.sucursal_id)));
+};
+
 export const obtenerEnvio = async (req: Request, res: Response) => {
   return res.json(await service.obtenerEnvio(Number(req.params.id)));
 };
