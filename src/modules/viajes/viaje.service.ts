@@ -1,5 +1,5 @@
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../errors/http-errors";
-import { ActualizarViajeDTO, CrearViajeDTO, TipoFiltroViaje } from "./viaje.dto";
+import { ActualizarViajeDTO, CrearViajeDTO, TipoFiltroViaje, ViajeTransportistaDTO } from "./viaje.dto";
 import { asignarEnviosEnEsperaAViaje } from "../envios/envio.service";
 import * as repo from "./viaje.repository";
 import * as envioRepo from "../envios/envio.repository";
@@ -73,7 +73,6 @@ export const crearViaje = async (firebaseUid: string, data: CrearViajeDTO) => {
 
   const salida = new Date(data.fecha_salida);
   const llegada = new Date(data.fecha_llegada);
-  if (salida < new Date()) throw new BadRequestError("La fecha de salida no puede ser en el pasado");
   if (llegada <= salida) throw new BadRequestError("La fecha de llegada debe ser posterior a la fecha de salida");
 
   const sucursalOrigenId = Number(actor.sucursal_id);
@@ -122,7 +121,6 @@ export const actualizarViaje = async (firebaseUid: string, viajeId: number, data
 
   const salida = new Date(data.fecha_salida);
   const llegada = new Date(data.fecha_llegada);
-  if (salida < new Date()) throw new BadRequestError("La fecha de salida no puede ser en el pasado");
   if (llegada <= salida) {
     throw new BadRequestError("La fecha de llegada debe ser posterior a la fecha de salida");
   }
@@ -133,6 +131,19 @@ export const actualizarViaje = async (firebaseUid: string, viajeId: number, data
   }
 
   return await repo.updateViaje(viajeId, data);
+};
+
+export const eliminarViaje = async (firebaseUid: string, viajeId: number) => {
+  const actor = await getActor(firebaseUid);
+
+  const viaje = await repo.findViajeById(viajeId);
+  if (!viaje) throw new NotFoundError("Viaje no encontrado");
+
+  if (actor.rol === "supervisor" && viaje.sucursal_origen_id !== Number(actor.sucursal_id)) {
+    throw new ForbiddenError("No tienes permiso para eliminar este viaje");
+  }
+
+  await repo.deleteViaje(viajeId);
 };
 
 export const cancelarViaje = async (firebaseUid: string, viajeId: number) => {
@@ -154,10 +165,17 @@ export const cancelarViaje = async (firebaseUid: string, viajeId: number) => {
 };
 
 // Endpoints para la app móvil del transportista
-export const iniciarViaje = async (viajeId: number) => {
+export const iniciarViaje = async (viajeId: number, firebaseUid: string) => {
   const viaje = await repo.findViajeById(viajeId);
   if (!viaje) throw new NotFoundError("Viaje no encontrado");
   if (viaje.estado !== "programado") throw new BadRequestError("El viaje no está en estado 'programado'");
+
+  const empleado = await repo.findEmpleadoContextByFirebaseUid(firebaseUid);
+  if (!empleado) throw new NotFoundError("Empleado no encontrado");
+
+  const tieneViajeActivo = await repo.getViajeActivoByTransportista(empleado.empleado_id);
+  if (tieneViajeActivo) throw new BadRequestError("Ya tienes un viaje en curso, debes finalizarlo antes de iniciar otro");
+
   await envioRepo.updateEnviosByViajeId(viajeId, "registrado", "en_camino");
   return await repo.updateViajeEstado(viajeId, "en_camino");
 };
@@ -182,4 +200,8 @@ export const confirmarRegreso = async (viajeId: number) => {
   if (!viaje) throw new NotFoundError("Viaje no encontrado");
   if (viaje.estado !== "regresando") throw new BadRequestError("El viaje no está en estado 'regresando'");
   return await repo.updateViajeEstado(viajeId, "finalizado");
+};
+
+export const listarViajesTransportista = async (empleado_id: number): Promise<ViajeTransportistaDTO[]> => {
+  return await repo.getViajesTransportista(empleado_id);
 };
