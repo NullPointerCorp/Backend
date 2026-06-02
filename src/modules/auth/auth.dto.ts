@@ -3,4 +3,5 @@ export interface SessionDTO {
   nombre: string;
   rol: string;
   rol_id: number;
+  sucursal_id: number | null;
 }

@@ -29,6 +29,14 @@ export const listarEnviosEmpleado = async (empleado_id: number): Promise<EnvioCo
   }));
 };
 
+export const listarEnviosSucursal = async (sucursal_id: number): Promise<EnvioConsultaDTO[]> => {
+  const envios = await repo.getAllEnviosBySucursal(sucursal_id);
+  return envios.map((envio) => ({
+    ...envio,
+    estado_envio: formatearEstadoEnvio(envio.estado_envio),
+  }));
+};
+
 export const obtenerEnvio = async (envio_id: number): Promise<EnvioDTO> => {
   const envio = await repo.findEnviolById(envio_id);
   if (!envio) throw new NotFoundError("Envío no encontrado");
@@ -99,3 +107,4 @@ export const cancelarEnvio = async (envio_id: number): Promise<void> => {
   if (!envio) throw new NotFoundError("Envío no encontrado");
   await repo.cancelarEnvio(envio_id);
 };
+

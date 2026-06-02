@@ -3,14 +3,14 @@ import {
   EnvioDTO,
   CrearEnvioDTO,
   EditarEnvioDTO,
-  EnvioConsultaDTO,
+  EnvioConsultaDTO
 } from "./envio.dto";
 import { ResultSetHeader } from "mysql2/promise";
 import { NotFoundError } from "../../errors/http-errors";
 
 export const getAllEnvios = async (): Promise<EnvioConsultaDTO[]> => {
   const [rows] = await pool.query(
-    `SELECT envio_id, c.correo, e.descripcion, tp.tamanio, tp.forma, e.peso, CONCAT(em.nombre,' ',em.apellido_paterno) AS nombre_empleado, t.numero_serie, st.nombre_subtipo, v.fecha_salida, v.fecha_llegada, s_origen.nombre_sucursal AS origen, s_destino.nombre_sucursal AS destino, e.estado_envio
+    `SELECT envio_id, c.correo, e.descripcion, tp.tamanio, tp.forma, tp.precio, e.peso, CONCAT(em.nombre,' ',em.apellido_paterno) AS nombre_empleado, t.numero_serie, st.nombre_subtipo, v.fecha_salida, v.fecha_llegada, s_origen.nombre_sucursal AS origen, s_destino.nombre_sucursal AS destino, e.estado_envio
     FROM envios e
     LEFT JOIN viajes v on v.viaje_id = e.viaje_id
     LEFT JOIN transportes t on t.numero_serie = v.numero_serie
@@ -29,7 +29,7 @@ export const getAllEnviosEmpleado = async (
   empleado_id: number,
 ): Promise<EnvioConsultaDTO[]> => {
   const [rows] = await pool.query(
-    `SELECT envio_id, c.correo, e.descripcion, tp.tamanio, tp.forma, e.peso, CONCAT(em.nombre,' ',em.apellido_paterno) AS nombre_empleado, t.numero_serie, st.nombre_subtipo, v.fecha_salida, v.fecha_llegada, s_origen.nombre_sucursal AS origen, s_destino.nombre_sucursal AS destino, e.estado_envio
+    `SELECT envio_id, c.correo, e.descripcion, tp.tamanio, tp.forma, tp.precio, e.peso, CONCAT(em.nombre,' ',em.apellido_paterno) AS nombre_empleado, t.numero_serie, st.nombre_subtipo, v.fecha_salida, v.fecha_llegada, s_origen.nombre_sucursal AS origen, s_destino.nombre_sucursal AS destino, e.estado_envio
     FROM envios e
     LEFT JOIN viajes v on v.viaje_id = e.viaje_id
     LEFT JOIN transportes t on t.numero_serie = v.numero_serie
@@ -42,6 +42,27 @@ export const getAllEnviosEmpleado = async (
     WHERE em.empleado_id = ?
     ORDER BY e.envio_id`,
     [empleado_id],
+  );
+  return rows as EnvioConsultaDTO[];
+};
+
+export const getAllEnviosBySucursal = async (
+  sucursal_id: number,
+): Promise<EnvioConsultaDTO[]> => {
+  const [rows] = await pool.query(
+    `SELECT envio_id, c.correo, e.descripcion, tp.tamanio, tp.forma, tp.precio, e.peso, CONCAT(em.nombre,' ',em.apellido_paterno) AS nombre_empleado, t.numero_serie, st.nombre_subtipo, v.fecha_salida, v.fecha_llegada, s_origen.nombre_sucursal AS origen, s_destino.nombre_sucursal AS destino, e.estado_envio
+    FROM envios e
+    LEFT JOIN viajes v on v.viaje_id = e.viaje_id
+    LEFT JOIN transportes t on t.numero_serie = v.numero_serie
+    INNER JOIN tipo_paquetes tp on tp.tipo_paquete_id = e.tipo_paquete_id
+    INNER JOIN empleados em on em.empleado_id = e.empleado_id
+    INNER JOIN sucursales s_origen on s_origen.sucursal_id = COALESCE(e.sucursal_origen_id, v.sucursal_origen_id)
+    INNER JOIN sucursales s_destino on s_destino.sucursal_id = COALESCE(e.sucursal_destino_id, v.sucursal_destino_id)
+    LEFT JOIN subtipo_transporte st on st.subtipo_id = t.subtipo_id
+    INNER JOIN clientes c on c.cliente_id = e.cliente_id
+    WHERE em.sucursal_id = ?
+    ORDER BY e.envio_id`,
+    [sucursal_id],
   );
   return rows as EnvioConsultaDTO[];
 };
@@ -113,7 +134,7 @@ export const findViajeDisponible = async (
      LEFT JOIN envios e ON e.viaje_id = v.viaje_id
      WHERE v.sucursal_origen_id = ?
        AND v.sucursal_destino_id = ?
-       AND v.fecha_salida >= NOW()
+       AND v.estado = 'programado'
      GROUP BY v.viaje_id, v.numero_serie, v.fecha_salida, t.capacidad_carga, t.unidad_medida
      HAVING (capacidad_kg - peso_asignado) >= ?
      ORDER BY v.fecha_salida ASC
@@ -237,6 +258,17 @@ export const getEnviosEnEsperaByRuta = async (
   return rows as { envio_id: number; peso: number }[];
 };
 
+export const updateEnviosByViajeId = async (
+  viajeId: number,
+  fromEstado: string,
+  toEstado: string
+): Promise<void> => {
+  await pool.query(
+    `UPDATE envios SET estado_envio = ? WHERE viaje_id = ? AND estado_envio = ?`,
+    [toEstado, viajeId, fromEstado]
+  );
+};
+
 export const asignarEnvioAViaje = async (
   envioId: number,
   viajeId: number,
@@ -250,4 +282,11 @@ export const asignarEnvioAViaje = async (
     [viajeId, envioId],
   );
   return result.affectedRows > 0;
+};
+
+export const liberarEnviosDeViaje = async (viajeId: number): Promise<void> => {
+  await pool.query(
+    `UPDATE envios SET estado_envio = 'en_espera', viaje_id = NULL WHERE viaje_id = ? AND estado_envio = 'registrado'`,
+    [viajeId]
+  );
 };

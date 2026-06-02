@@ -4,8 +4,16 @@ export interface CrearViajeDTO {
   numero_serie: string;
   sucursal_destino_id: number;
   fecha_salida: string;
-  fecha_llegada?: string | null;
+  fecha_llegada: string;
 }
+
+export interface ActualizarViajeDTO {
+  numero_serie: string;
+  fecha_salida: string;
+  fecha_llegada: string;
+}
+
+export type EstadoViaje = 'programado' | 'en_camino' | 'entregado' | 'regresando' | 'finalizado' | 'cancelado';
 
 export interface ViajeConsultaDTO {
   viaje_id: number;
@@ -17,5 +25,16 @@ export interface ViajeConsultaDTO {
   sucursal_destino_id: number;
   destino: string;
   fecha_salida: string;
-  fecha_llegada: string | null;
+  fecha_llegada: string;
+  estado: EstadoViaje;
+}
+
+export interface ViajeTransportistaDTO {
+  viaje_id: number;
+  origen: string;
+  destino: string;
+  fecha_salida: string;
+  fecha_llegada: string;
+  estado: EstadoViaje;
+  total_envios: number;
 }
