@@ -2,10 +2,12 @@
 
 Sistema web de gestión logística para empresas con múltiples sucursales. Permite registrar, asignar y rastrear envíos desde su origen hasta su destino, y administrar de forma centralizada la flota de transportes, el personal, los almacenes y los clientes.
 
-| Repositorio | Enlace |
+| Recurso | Enlace |
 |---|---|
-| Backend | [github.com/NullPointerCorp/Backend](https://github.com/NullPointerCorp/Backend) |
-| Frontend | [github.com/NullPointerCorp/Frontend](https://github.com/NullPointerCorp/Frontend) |
+| Frontend (producción) | [frontend-iota-five-78.vercel.app](https://frontend-iota-five-78.vercel.app) |
+| Backend (producción) | [backend-production-28da.up.railway.app](https://backend-production-28da.up.railway.app) |
+| Repositorio Backend | [github.com/NullPointerCorp/Backend](https://github.com/NullPointerCorp/Backend) |
+| Repositorio Frontend | [github.com/NullPointerCorp/Frontend](https://github.com/NullPointerCorp/Frontend) |
 
 ---
 
@@ -19,7 +21,8 @@ Sistema web de gestión logística para empresas con múltiples sucursales. Perm
 6. [Referencia de la API](#referencia-de-la-api)
 7. [Puesta en marcha](#puesta-en-marcha)
 8. [Variables de entorno](#variables-de-entorno)
-9. [Scripts](#scripts)
+9. [Despliegue en producción](#despliegue-en-producción)
+10. [Scripts](#scripts)
 
 ---
 
@@ -28,7 +31,11 @@ Sistema web de gestión logística para empresas con múltiples sucursales. Perm
 - Autenticación con Firebase Auth (correo/contraseña) con bloqueo automático de cuenta tras intentos fallidos y auditoría de accesos
 - Gestión de sucursales con dirección completa, coordenadas geográficas y supervisor asignado
 - Gestión de almacenes por sucursal con historial de movimientos de entrada y salida
-- Gestión de empleados con algunos roles diferenciados: Jefe, Supervisor de Sucursal, Recepcionista de Sucursal y Transportista
+- Gestión de empleados con roles diferenciados: Jefe, Supervisor, Recepcionista y Transportista, con control de acceso por rol
+  - **Jefe:** acceso total al sistema
+  - **Supervisor:** ve y gestiona únicamente los empleados, transportes, viajes y envíos de su sucursal; no puede registrar otros supervisores ni cambiar la sucursal de un empleado; solo puede existir un supervisor por sucursal
+  - **Recepcionista:** registra envíos y consulta los que él mismo ha registrado
+  - **Transportista:** gestiona sus viajes asignados desde la app móvil
 - Gestión de flota de transporte con tipo, subtipo, capacidad de carga y transportista asignado
 - Gestión de clientes y catálogo de tipos de paquete con precio
 - Registro y seguimiento de envíos con estados: `registrado`, `en_camino`, `entregado`, `retrasado` y `devuelto`
@@ -265,7 +272,7 @@ Un navigation guard global verifica `authStore.session` antes de cada navegació
 - **Request:** Lee el JWT de `localStorage`. Si no existe, cancela la petición y redirige a `/login`. Si existe, adjunta `Authorization: Bearer <token>` a todos los headers.
 - **Response:** Si el servidor devuelve `401`, elimina el token del almacenamiento local y redirige a `/login`.
 
-La sesión del usuario (`id`, `nombre`, `rol`, `rol_id`) se persiste en `localStorage` mediante el store de Pinia `useAuthStore`.
+La sesión del usuario (`id`, `nombre`, `rol`, `rol_id`, `sucursal_id`) se persiste en `localStorage` mediante el store de Pinia `useAuthStore`. El campo `sucursal_id` es usado por el frontend para restringir formularios y peticiones cuando el usuario es Supervisor.
 
 ### Composables compartidos
 
@@ -386,10 +393,28 @@ Todas las respuestas son `application/json`.
 
 | Método | Ruta | Auth | Descripción |
 |---|---|---|---|
-| GET | `/envios` | Sí | Lista envíos con datos del cliente, transporte, origen y destino |
+| GET | `/envios` | Sí | Lista todos los envíos (Jefe) |
+| GET | `/envios/sucursal/:sucursal_id` | Sí | Lista envíos de una sucursal (Supervisor) |
+| GET | `/envios/empleado/:empleado_id` | Sí | Lista envíos registrados por un empleado (Recepcionista) |
 | GET | `/envios/:id` | Sí | Detalle de un envío |
 | POST | `/envios/nuevo` | Sí | Registra un nuevo envío |
 | PUT | `/envios/:id` | Sí | Actualiza el estado u otros datos de un envío |
+| PUT | `/envios/:id/cancelar` | Sí | Cancela un envío |
+
+### Viajes — `/viajes`
+
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| GET | `/viajes` | Sí | Lista viajes filtrados por tipo y sucursal del usuario |
+| GET | `/viajes/:viaje_id` | Sí | Detalle de un viaje |
+| POST | `/viajes` | Sí | Crea un viaje |
+| PUT | `/viajes/:viaje_id` | Sí | Actualiza un viaje |
+| DELETE | `/viajes/:viaje_id` | Sí | Elimina un viaje |
+| PUT | `/viajes/:viaje_id/cancelar` | Sí | Cancela un viaje |
+| PUT | `/viajes/:viaje_id/iniciar` | Sí | Inicia un viaje (app móvil) |
+| PUT | `/viajes/:viaje_id/finalizar` | Sí | Finaliza un viaje (app móvil) |
+| PUT | `/viajes/:viaje_id/regresar` | Sí | Marca el viaje como regresando (app móvil) |
+| PUT | `/viajes/:viaje_id/confirmar-regreso` | Sí | Confirma el regreso del transporte (app móvil) |
 
 ---
 
@@ -455,12 +480,57 @@ DB_PORT=3306
 DB_USER=
 DB_PASSWORD=
 DB_NAME=novalogistics_db
+
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
+
+FRONTEND_URL=http://localhost:5173
 ```
+
+Las credenciales de Firebase (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`) se obtienen generando una nueva clave privada en **Firebase Console → Project Settings → Service accounts**. La `FIREBASE_PRIVATE_KEY` debe pegarse en una sola línea con `\n` en lugar de saltos de línea reales.
 
 ### Frontend — `.env`
 
 ```env
 VITE_API_URL=http://localhost:3000
+```
+
+---
+
+## Despliegue en producción
+
+El proyecto está desplegado con la siguiente configuración:
+
+| Capa | Plataforma | URL |
+|---|---|---|
+| Frontend | Vercel | https://frontend-iota-five-78.vercel.app |
+| Backend | Railway | https://backend-production-28da.up.railway.app |
+| Base de datos | Railway (MySQL 9.4) | Acceso interno desde el backend |
+
+### Frontend — Vercel
+
+- Conectado al repositorio `NullPointerCorp/Frontend`, rama `main`.
+- Variable de entorno configurada en Vercel: `VITE_API_URL=https://backend-production-28da.up.railway.app`
+- El archivo `vercel.json` incluye una rewrite rule que redirige todas las rutas a `index.html`, necesario para el correcto funcionamiento del enrutamiento de la SPA al refrescar la página.
+
+### Backend — Railway
+
+- Conectado al repositorio `NullPointerCorp/Backend`, rama `main`.
+- Se compila TypeScript en el paso de inicio con `tsc && node dist/src/index.js`.
+- El backend y la base de datos se comunican por red interna de Railway usando `mysql.railway.internal`, sin exponer la BD a internet.
+- Variables de entorno configuradas en Railway: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `PORT`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `FRONTEND_URL`.
+
+### Base de datos — Railway MySQL
+
+Para importar el esquema en un servidor MySQL nuevo:
+
+```bash
+# Eliminar del SQL las líneas: CREATE DATABASE, USE, CREATE USER, GRANT, FLUSH PRIVILEGES
+sed -e '6d' -e '7d' -e '8d' -e '13d' -e '14d' -e '15d' logistica_bd.sql > logistica_bd_railway.sql
+
+# Importar
+mysql -h <HOST> -u <USER> -p<PASSWORD> --port <PORT> --protocol=TCP <DATABASE> < logistica_bd_railway.sql
 ```
 
 ---
@@ -473,6 +543,7 @@ VITE_API_URL=http://localhost:3000
 |---|---|
 | `pnpm dev` | Servidor de desarrollo con hot reload (nodemon + ts-node) |
 | `pnpm build` | Compila TypeScript a JavaScript en `/dist` |
+| `pnpm start` | Compila y arranca el servidor compilado (usado en producción) |
 
 ### Frontend
 
